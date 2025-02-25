@@ -40,7 +40,7 @@ namespace KyivBarGuideInfrastructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(int barId, bool smokerStatus, DateOnly date)
         {
-            // Перевірка, чи дата не є минулою
+            // check
             if (date < DateOnly.FromDateTime(DateTime.Now))
             {
                 ModelState.AddModelError("Date", "Reservation date can't be in the past");
@@ -60,15 +60,14 @@ namespace KyivBarGuideInfrastructure.Controllers
                 ReservedInId = barId, // Storing barId in ReservedInId (This links the reservation to the bar)
                 SmokerStatus = smokerStatus,
                 Date = date,
-                ReservedById = null, // dummy client Id (WAITING TO BE CHANGED LATER)
-                ConfirmedById = null // dummy admin Id (WAITING TO BE CHANGED LATER)
+                ReservedById = null, // dummy client Id (WAITING TO BE CHANGED LATER AND THAT FIELD TO BE SET BACK TO NOT NULLABLE)
+                ConfirmedById = null // dummy admin Id (WAITING TO BE CHANGED LATER  AND THAT FIELD TO BE SET BACK TO NOT NULLABLE)
             };
 
             // Add new reservation to database
             _context.Reservations.Add(reservation);
             await _context.SaveChangesAsync();
 
-            // Додаємо повідомлення до TempData
             TempData["ReservationMessage"] = $"Reservation #{reservation.Id} is : processing";
 
             // Redirect to bar details page after reservation creation (New functionality)

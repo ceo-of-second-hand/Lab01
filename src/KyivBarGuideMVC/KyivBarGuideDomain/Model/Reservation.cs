@@ -1,4 +1,7 @@
-﻿namespace KyivBarGuideDomain.Model;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace KyivBarGuideDomain.Model;
 
 public partial class Reservation
 {
@@ -10,10 +13,12 @@ public partial class Reservation
 
     public int? ConfirmedById { get; set; }
 
+    [Required(ErrorMessage = "please fill that field")]
     public bool SmokerStatus { get; set; }
 
     public bool? ConcertVisit { get; set; }
 
+    [Required(ErrorMessage = "please fill that field")]
     public DateOnly Date { get; set; }
 
     public virtual Admin ConfirmedBy { get; set; } = null!;
