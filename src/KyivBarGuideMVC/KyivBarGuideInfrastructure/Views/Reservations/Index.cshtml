@@ -1,0 +1,65 @@
+﻿@model IEnumerable<KyivBarGuideDomain.Model.Reservation>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.ReservedInId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SmokerStatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ConcertVisit)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Date)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ConfirmedBy)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReservedBy)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReservedInId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SmokerStatus)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ConcertVisit)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ConfirmedBy.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReservedBy.Name)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

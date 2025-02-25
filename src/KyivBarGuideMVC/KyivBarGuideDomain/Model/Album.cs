@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace KyivBarGuideDomain.Model;
 
-namespace KyivBarGuideDomain.Model;
-
-public partial class Album: Entity
+public partial class Album
 {
-    //public int Id { get; set; }
+    public int Id { get; set; }
 
     public int WrittenById { get; set; }
 

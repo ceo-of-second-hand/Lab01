@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace KyivBarGuideDomain.Model;
-
-public partial class Bar: Entity
+﻿namespace KyivBarGuideDomain.Model;
+public partial class Bar
 {
-    //public int Id { get; set; }
+    public int Id { get; set; }
+
+    public string Name { get; set; } = null!;
 
     public string? Theme { get; set; }
 

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace KyivBarGuideDomain.Model;
 
-namespace KyivBarGuideDomain.Model;
-
-public partial class Proportion: Entity
+public partial class Proportion
 {
-    //public int Id { get; set; }
+    public int Id { get; set; }
 
     public int AmountInId { get; set; }
 

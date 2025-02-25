@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace KyivBarGuideDomain.Model;
 
-namespace KyivBarGuideDomain.Model;
-
-public partial class FavouriteBar: Entity
+public partial class FavouriteBar
 {
-    //public int Id { get; set; }
+    public int Id { get; set; }
 
     public int AddedById { get; set; }
 

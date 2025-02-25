@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace KyivBarGuideDomain.Model;
 
-namespace KyivBarGuideDomain.Model;
-
-public partial class Cocktail : Entity
+public partial class Cocktail
 {
-    //public int Id { get; set; }
+    public int Id { get; set; }
 
     public int SellsIn { get; set; }
 

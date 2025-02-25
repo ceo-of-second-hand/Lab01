@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace KyivBarGuideDomain.Model;
-
-public partial class Admin: Entity
+﻿namespace KyivBarGuideDomain.Model;
+public partial class Admin
 {
-    //public int Id { get; set; }
+    public int Id { get; set; }
 
     public int WorkInId { get; set; }
 

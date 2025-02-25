@@ -1,0 +1,100 @@
+﻿@model KyivBarGuideDomain.Model.Reservation
+
+@{
+    ViewData["Title"] = "Book a Table";
+}
+
+<h1>Book a Table</h1>
+
+<form asp-action="Create">
+    <input type="hidden" name="barId" value="@ViewBag.BarId" />
+
+    <div class="form-group">
+        <label for="date">Reservation date:</label>
+        @* <input type="date" id="date" name="date" class="form-control" required /> *@
+        <input type="date" id="date" name="date" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+        <span asp-validation-for="Date" class="text-danger"></span> <!-- Відображення помилок -->
+    </div>
+
+    <div class="form-group">
+        <label for="smokerStatus">Smoking area:</label>
+        <select id="smokerStatus" name="smokerStatus" class="form-control" required>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Confirm reservation</button>
+</form>
+
+<div class="mt-4">
+    <a asp-controller="Bars" asp-action="Details" asp-route-id="@ViewBag.BarId">Back</a>
+</div>
+
+
+
+
+
+@*
+@model KyivBarGuideDomain.Model.Reservation
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Reservation</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Id" class="control-label"></label>
+                <input asp-for="Id" class="form-control" />
+                <span asp-validation-for="Id" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ReservedById" class="control-label"></label>
+                <select asp-for="ReservedById" class ="form-control" asp-items="ViewBag.ReservedById"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ReservedInId" class="control-label"></label>
+                <input asp-for="ReservedInId" class="form-control" />
+                <span asp-validation-for="ReservedInId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ConfirmedById" class="control-label"></label>
+                <select asp-for="ConfirmedById" class ="form-control" asp-items="ViewBag.ConfirmedById"></select>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="SmokerStatus" /> @Html.DisplayNameFor(model => model.SmokerStatus)
+                </label>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="ConcertVisit" /> @Html.DisplayNameFor(model => model.ConcertVisit)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="Date" class="control-label"></label>
+                <input asp-for="Date" class="form-control" />
+                <span asp-validation-for="Date" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+*@

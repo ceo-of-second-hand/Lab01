@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace KyivBarGuideDomain.Model;
 
-namespace KyivBarGuideDomain.Model;
-
-public partial class Client : Entity
+public partial class Client
 {
-    //public int Id { get; set; }
+    public int Id { get; set; }
 
     public string Name { get; set; } = null!;
 
