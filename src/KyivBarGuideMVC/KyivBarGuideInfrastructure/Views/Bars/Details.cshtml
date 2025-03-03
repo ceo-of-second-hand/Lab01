@@ -22,23 +22,9 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Theme)
         </dd>
-        <!-- Removed Rating and Picture fields since they are not needed on the details page -->
-        <!--
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.Rating)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.Rating)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.Picture)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.Picture)
-        </dd>
-        -->
     </dl>
 </div>
+
 <!-- Додаємо блок для відображення повідомлення про резервування -->
 @if (TempData["ReservationMessage"] != null)
 {
@@ -47,20 +33,18 @@
     </div>
 }
 
-<!-- Added "Book a Table" button to redirect to the reservation creation page -->
+<!-- Кнопка "Book a Table" -->
 <div class="mt-4">
     <a asp-controller="Reservations" asp-action="Create" asp-route-barId="@Model.Id" class="btn btn-success">Book a Table</a>
 </div>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
-
+<!-- Додаємо додатковий відступ між кнопками -->
+<div class="mt-4"></div> <!-- Додатковий відступ -->
+<!-- Кнопка "Add to Favourites" або "Delete from Favourites" -->
 @if (ViewBag.IsFavourite)
 {
     <!-- Кнопка "Delete from Favourites" -->
-    <form asp-controller="FavouriteBars" asp-action="RemoveFromFavourites" method="post">
+    <form asp-controller="FavouriteBars" asp-action="RemoveFromFavourites" method="post" class="mb-3">
         <input type="hidden" name="barId" value="@Model.Id" />
         <button type="submit" class="btn btn-danger">Delete from Favourites</button>
     </form>
@@ -68,11 +52,17 @@
 else
 {
     <!-- Кнопка "Add to Favourites" -->
-    <form asp-controller="FavouriteBars" asp-action="AddToFavourites" method="post">
+    <form asp-controller="FavouriteBars" asp-action="AddToFavourites" method="post" class="mb-3">
         <input type="hidden" name="barId" value="@Model.Id" />
         <button type="submit" class="btn btn-primary">Add to Favourites</button>
     </form>
 }
+
+<!-- Кнопки "Edit" та "Back to List" -->
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
 
 @if (TempData["SuccessMessage"] != null)
 {
@@ -87,4 +77,3 @@ else
         @TempData["ErrorMessage"]
     </div>
 }
-

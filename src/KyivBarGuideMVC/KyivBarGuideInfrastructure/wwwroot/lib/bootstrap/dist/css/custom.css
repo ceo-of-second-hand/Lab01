@@ -1,0 +1,53 @@
+﻿
+/* Встановлюємо фон світло-рожевим (baby-pink) */
+.navbar {
+    background-color: #fbb8b8 !important; /* baby-pink */
+}
+
+/* Налаштовуємо стиль для посилань у навігаційній панелі */
+a.navbar-brand, a.nav-link {
+    color: #000000 !important; /* чорний колір для тексту */
+}
+
+/* Встановлюємо стиль для активних елементів у навігаційному меню */
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: #000000 !important; /* чорний колір для активного елементу */
+    background-color: #fbb8b8 !important; /* світло-рожевий фон для активного елементу */
+    border-color: #fbb8b8 !important; /* зберігаємо рожевий колір рамки */
+}
+
+/* Інші стилі, якщо потрібно */
+a {
+    color: #000000; /* чорний колір для всіх інших посилань */
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #fbb8b8; /* baby-pink */
+    border-color: #fbb8b8;
+}
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
+}
