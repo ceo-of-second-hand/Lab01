@@ -4,7 +4,7 @@ public partial class FavouriteBar
 {
     public int Id { get; set; }
 
-    public int AddedById { get; set; }
+    public int? AddedById { get; set; } //changed to nullable for migration "MakeFieldNullableAddedByFavouriteBarsTEMP"
 
     public int AddedId { get; set; }
 

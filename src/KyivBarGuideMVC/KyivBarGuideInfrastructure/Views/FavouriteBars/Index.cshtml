@@ -1,0 +1,41 @@
+﻿@model IEnumerable<KyivBarGuideDomain.Model.FavouriteBar>
+
+@{
+    ViewData["Title"] = "Favourites";
+}
+
+<h1>Favourite Bars</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Added)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AddedBy)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                <a asp-controller="Bars" asp-action="Details" asp-route-id="@item.AddedId">@item.Added.Name</a>
+                 @* @Html.DisplayFor(modelItem => item.Added.Name) --> *@
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AddedBy.Name)
+            </td>
+                <td>
+                    <!-- Замінюємо посилання на форму для видалення -->
+                    <form asp-controller="FavouriteBars" asp-action="RemoveExactlyFromFavourites" method="post">
+                        <input type="hidden" name="barId" value="@item.AddedId" />
+                        <button type="submit" class="btn btn-danger">Remove</button>
+                    </form>
+                </td>
+        </tr>
+}
+    </tbody>
+</table>

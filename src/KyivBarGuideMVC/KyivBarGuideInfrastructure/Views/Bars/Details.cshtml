@@ -56,3 +56,35 @@
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+
+@if (ViewBag.IsFavourite)
+{
+    <!-- Кнопка "Delete from Favourites" -->
+    <form asp-controller="FavouriteBars" asp-action="RemoveFromFavourites" method="post">
+        <input type="hidden" name="barId" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Delete from Favourites</button>
+    </form>
+}
+else
+{
+    <!-- Кнопка "Add to Favourites" -->
+    <form asp-controller="FavouriteBars" asp-action="AddToFavourites" method="post">
+        <input type="hidden" name="barId" value="@Model.Id" />
+        <button type="submit" class="btn btn-primary">Add to Favourites</button>
+    </form>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success mt-4">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger mt-4">
+        @TempData["ErrorMessage"]
+    </div>
+}
+

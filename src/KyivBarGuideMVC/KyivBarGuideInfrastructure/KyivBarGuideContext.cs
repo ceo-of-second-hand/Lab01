@@ -158,9 +158,11 @@ public partial class KyivBarGuideContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK_Favourite_bars");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                //.ValueGeneratedNever() removed for migration MakeFieldAutoIncrementedIdFavouriteBars
                 .HasColumnName("id");
-            entity.Property(e => e.AddedById).HasColumnName("added_by_id");
+            entity.Property(e => e.AddedById)
+                .IsRequired(false) //added for migration "MakeFieldNullableAddedByFavouriteBarsTEMP"
+                .HasColumnName("added_by_id");
             entity.Property(e => e.AddedId).HasColumnName("added_id");
 
             entity.HasOne(d => d.AddedBy).WithMany(p => p.FavouriteBars)

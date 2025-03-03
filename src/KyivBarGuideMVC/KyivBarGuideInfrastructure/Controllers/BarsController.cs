@@ -40,6 +40,9 @@ namespace KyivBarGuideInfrastructure.Controllers
                 return NotFound();
             }
 
+            //check whether bar was added to favourites
+            ViewBag.IsFavourite = await IsBarFavourite(bar.Id);
+
             return View(bar);
         }
 
@@ -140,6 +143,7 @@ namespace KyivBarGuideInfrastructure.Controllers
             return View(bar);
         }
 
+        /*
         // POST: Bars/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -153,6 +157,31 @@ namespace KyivBarGuideInfrastructure.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+        */
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var bar = await _context.Bars.FindAsync(id);
+            if (bar != null)
+            {
+                var favouriteBars = _context.FavouriteBars.Where(fb => fb.AddedId == id);
+                _context.FavouriteBars.RemoveRange(favouriteBars);
+                _context.Bars.Remove(bar);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        public async Task<bool> IsBarFavourite(int barId)
+        {
+            return await _context.FavouriteBars
+                //.AnyAsync(fb => fb.AddedById == userId && fb.AddedId == barId);  TO BE CHANGED
+                .AnyAsync(fb =>fb.AddedId == barId);
         }
 
         private bool BarExists(int id)
