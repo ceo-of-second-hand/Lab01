@@ -1,0 +1,6 @@
+﻿.navbar-brand {
+    font-family: 'Alex Brush', cursive !important; /* Використовуємо шрифт Alex Brush */
+    font-size: 24px; /* Розмір шрифту */
+    font-weight: bold; /* Жирний шрифт */
+    color: #333; /* Колір тексту */
+}

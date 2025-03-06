@@ -7,7 +7,7 @@ public partial class Bar
     public int Id { get; set; }
 
 
-    //[Required(ErrorMessage = "please fill that field")]
+    [Required(ErrorMessage = "please fill that field")]
     public string Name { get; set; } = null!;
 
     public string? Theme { get; set; }

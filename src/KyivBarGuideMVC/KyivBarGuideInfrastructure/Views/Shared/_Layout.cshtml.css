@@ -1,14 +1,23 @@
-﻿/* Встановлюємо фон світло-рожевим (baby-pink) */
-.navbar {
-    font-family: 'Alex Brush', cursive !important;
-    background-color: #F1E0E6 !important; /* baby-pink */
-}
-
+﻿
 /* Налаштовуємо стиль для посилань у навігаційній панелі */
-a.navbar-brand, a.nav-link {
+.navbar .container-fluid .navbar-brand {
     font-family: 'Alex Brush', cursive !important;
     color: #000000 !important; /* чорний колір для тексту */
 }
+
+/* Встановлюємо фон світло-рожевим (baby-pink) */
+.navbar {
+    background-color: #F1E0E6 !important; /* baby-pink */
+}
+
+/* Застосовуємо шрифт Noto Serif до навігаційних посилань */
+.nav-link {
+    font-family: 'Noto Serif' !important;
+    font-style: italic;
+    font-weight: 200;
+}
+
+
 
 /* Встановлюємо стиль для активних елементів у навігаційному меню */
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
