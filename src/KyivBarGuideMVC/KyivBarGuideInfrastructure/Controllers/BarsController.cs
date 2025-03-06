@@ -60,10 +60,32 @@ namespace KyivBarGuideInfrastructure.Controllers
 
         //deleted Rating and Picture since do not wanna show them on first page
         //removed id since it is not changable
-        public async Task<IActionResult> Create([Bind("Name,Theme")] Bar bar)
+        public async Task<IActionResult> Create([Bind("Name,Theme")] Bar bar, IFormFile? photo)
         {
             if (ModelState.IsValid)
             {
+                if (photo != null && photo.Length > 0) //added new piece for uploading photos
+                {
+                    var permittedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var extension = Path.GetExtension(photo.FileName).ToLower();
+
+                    if (!permittedExtensions.Contains(extension))
+                    {
+                        ModelState.AddModelError("photo", "Invalid file type. Only images are allowed.");
+                        return View(bar);
+                    }
+
+                    var fileName = Path.GetFileName(photo.FileName);
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await photo.CopyToAsync(stream);
+                    }
+
+                    bar.Picture = "/images/" + fileName; // saving path
+                }
+
                 _context.Add(bar);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -95,7 +117,7 @@ namespace KyivBarGuideInfrastructure.Controllers
 
         //deleted Rating and Picture since do not wanna show them on first page
         //removed id since it is set automatically
-        public async Task<IActionResult> Edit(int id, [Bind("Name,Theme")] Bar bar)
+        public async Task<IActionResult> Edit(int id, [Bind("Name,Theme")] Bar bar, IFormFile? photo)
         {
             if (id != bar.Id)
             {
@@ -106,9 +128,46 @@ namespace KyivBarGuideInfrastructure.Controllers
             {
                 try
                 {
-                    _context.Update(bar);
+                    // find the existing bar entry in the database
+                    var existingBar = await _context.Bars.FindAsync(id);
+                    if (existingBar == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // update name and theme
+                    existingBar.Name = bar.Name;
+                    existingBar.Theme = bar.Theme;
+
+                    // if a new photo is provided, save it and update the picture field
+                    if (photo != null && photo.Length > 0)
+                    {
+                        var permittedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                        var extension = Path.GetExtension(photo.FileName).ToLower();
+
+                        if (!permittedExtensions.Contains(extension))
+                        {
+                            ModelState.AddModelError("photo", "Invalid file type. Only images are allowed.");
+                            return View(bar);
+                        }
+
+                        var fileName = Path.GetFileName(photo.FileName);
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", fileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await photo.CopyToAsync(stream);
+                        }
+
+                        //suggetsion to add path.combina (cross platform)
+                        existingBar.Picture = "/images/" + fileName; 
+                    }
+                    _context.Update(existingBar);
                     await _context.SaveChangesAsync();
                 }
+
+                //KINDA DOUBTFUL
+                //checks whteher data was not changed simultaneously
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!BarExists(bar.Id))

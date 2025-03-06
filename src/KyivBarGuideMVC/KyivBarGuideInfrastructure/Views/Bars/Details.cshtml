@@ -6,74 +6,100 @@
 
 <h1>Details</h1>
 
-<div>
-    <h4>Bar</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Theme)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Theme)
-        </dd>
-    </dl>
+<div class="row">
+    <!-- Ліва частина: деталі бару -->
+    <div class="col-md-8 d-flex flex-column">
+        <h4>Bar</h4>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Name)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Name)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Theme)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Theme)
+            </dd>
+        </dl>
+
+        <!-- Додаємо блок для відображення повідомлення про резервування -->
+        @if (TempData["ProcessingMessage"] != null)
+        {
+            <div class="mt-1" style="color: black; font-style: italic;">
+                @TempData["ProcessingMessage"]
+            </div>
+        }
+
+        <!-- Кнопка "Book a Table" -->
+        <div class="mt-4">
+            <a asp-controller="Reservations" asp-action="Create" asp-route-barId="@Model.Id" class="btn btn-custom">Book a Table</a>
+        </div>
+
+        <!-- Додаємо додатковий відступ між кнопками -->
+        <div class="mt-4"></div> <!-- Додатковий відступ -->
+        <!-- Кнопка "Add to Favourites" або "Delete from Favourites" -->
+        @if (ViewBag.IsFavourite)
+        {
+            <!-- Кнопка "Delete from Favourites" -->
+            <form asp-controller="FavouriteBars" asp-action="RemoveFromFavourites" method="post" class="mb-3">
+                <input type="hidden" name="barId" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger">Delete from Favourites</button>
+            </form>
+        }
+        else
+        {
+            <!-- Кнопка "Add to Favourites" -->
+            <form asp-controller="FavouriteBars" asp-action="AddToFavourites" method="post" class="mb-3">
+                <input type="hidden" name="barId" value="@Model.Id" />
+                <button type="submit" class="btn btn-primary">Add to Favourites</button>
+            </form>
+        }
+
+        <!-- Кнопки "Edit" та "Back to List" -->
+        <div class="mt-3">
+            <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+            <a asp-action="Index">Back to List</a>
+        </div>
+    </div>
+
+    <!-- Права частина: зображення бару -->
+    <div class="col-md-4">
+        @if (!string.IsNullOrEmpty(Model.Picture))
+        {
+            <div class="text-right image-container">
+                <img src="@Model.Picture" alt="Bar Image" class="img-fluid rounded bar-image" />
+            </div>
+        }
+    </div>
 </div>
 
-<!-- Додаємо блок для відображення повідомлення про резервування -->
-@if (TempData["ReservationMessage"] != null)
-{
-    <div class="alert alert-info mt-4">
-        @TempData["ReservationMessage"]
-    </div>
-}
+<style>
+    .btn-custom {
+        background-color: #6c1936 !important;
+        color: white !important;
+        border-color: #6c1936 !important;
+    }
 
-<!-- Кнопка "Book a Table" -->
-<div class="mt-4">
-    <a asp-controller="Reservations" asp-action="Create" asp-route-barId="@Model.Id" class="btn btn-success">Book a Table</a>
-</div>
+        .btn-custom:hover {
+            background-color: #5a122d !important;
+            border-color: #5a122d !important;
+        }
+    /* Стилі для контейнера зображення */
+    .image-container {
+        width: 100%;
+        height: 100%; /* Займає всю висоту контейнера */
+        overflow: hidden; /* Забезпечує обрізання зображення, якщо воно виходить за межі */
+    }
 
-<!-- Додаємо додатковий відступ між кнопками -->
-<div class="mt-4"></div> <!-- Додатковий відступ -->
-<!-- Кнопка "Add to Favourites" або "Delete from Favourites" -->
-@if (ViewBag.IsFavourite)
-{
-    <!-- Кнопка "Delete from Favourites" -->
-    <form asp-controller="FavouriteBars" asp-action="RemoveFromFavourites" method="post" class="mb-3">
-        <input type="hidden" name="barId" value="@Model.Id" />
-        <button type="submit" class="btn btn-danger">Delete from Favourites</button>
-    </form>
-}
-else
-{
-    <!-- Кнопка "Add to Favourites" -->
-    <form asp-controller="FavouriteBars" asp-action="AddToFavourites" method="post" class="mb-3">
-        <input type="hidden" name="barId" value="@Model.Id" />
-        <button type="submit" class="btn btn-primary">Add to Favourites</button>
-    </form>
-}
-
-<!-- Кнопки "Edit" та "Back to List" -->
-<div class="mt-3">
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success mt-4">
-        @TempData["SuccessMessage"]
-    </div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger mt-4">
-        @TempData["ErrorMessage"]
-    </div>
-}
+    /* Стилі для зображення */
+    .bar-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Заповнює контейнер, зберігаючи пропорції */
+        object-position: center; /* Центрує зображення */
+    }
+</style>

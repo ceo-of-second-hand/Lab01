@@ -68,7 +68,7 @@ namespace KyivBarGuideInfrastructure.Controllers
             _context.Reservations.Add(reservation);
             await _context.SaveChangesAsync();
 
-            TempData["ReservationMessage"] = $"Reservation #{reservation.Id} is : processing";
+            TempData["ProcessingMessage"] = $"Reservation #{reservation.Id} is : BEING PROCESSED⚙️";
 
             // Redirect to bar details page after reservation creation (New functionality)
             return RedirectToAction("Details", "Bars", new { id = barId });

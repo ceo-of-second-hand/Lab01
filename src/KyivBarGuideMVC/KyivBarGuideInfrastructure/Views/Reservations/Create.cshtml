@@ -6,31 +6,35 @@
 
 <h1>Book a Table</h1>
 
-<form asp-action="Create">
-    <input type="hidden" name="barId" value="@ViewBag.BarId" />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create">
+            <input type="hidden" name="barId" value="@ViewBag.BarId" />
 
-    <div class="form-group">
-        <label for="date">Reservation date:</label>
-        @* <input type="date" id="date" name="date" class="form-control" required /> *@
-        <input type="date" id="date" name="date" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
-        <span asp-validation-for="Date" class="text-danger"></span> <!-- Відображення помилок -->
+            <div class="form-group">
+                <label for="date">Reservation date:</label>
+                <input type="date" id="date" name="date" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                <span asp-validation-for="Date" class="text-danger"></span> <!-- Відображення помилок -->
+            </div>
+
+            <div class="form-group">
+                <label for="smokerStatus">Book in a smoking area:</label>
+                <select id="smokerStatus" name="smokerStatus" class="form-control" required>
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+            </div>
+
+            <div class="form-group mt-4">
+                <input type="submit" value="Confirm" class="btn btn-primary" />
+            </div>
+        </form>
+
+        <div class="mt-4">
+            <a asp-controller="Bars" asp-action="Details" asp-route-id="@ViewBag.BarId">Back</a>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label for="smokerStatus">Smoking area:</label>
-        <select id="smokerStatus" name="smokerStatus" class="form-control" required>
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-        </select>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Confirm reservation</button>
-</form>
-
-<div class="mt-4">
-    <a asp-controller="Bars" asp-action="Details" asp-route-id="@ViewBag.BarId">Back</a>
 </div>
-
 
 
 

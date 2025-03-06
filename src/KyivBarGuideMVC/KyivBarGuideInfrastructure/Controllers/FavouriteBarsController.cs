@@ -223,12 +223,6 @@ namespace KyivBarGuideInfrastructure.Controllers
             {
                 _context.FavouriteBars.Remove(favouriteBar);
                 await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Bar removed from favourites!";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Bar is not in favourites.";
             }
 
             return RedirectToAction("Details", "Bars", new { id = barId });

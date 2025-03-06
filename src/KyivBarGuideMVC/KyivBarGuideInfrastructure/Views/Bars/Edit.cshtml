@@ -10,7 +10,8 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <!-- Added enctype attribute to enable file uploads -->
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             @*id remains in hidden mode here for proper work of processes*@
             <input type="hidden" asp-for="Id" />
@@ -34,8 +35,14 @@
                 <input asp-for="Picture" class="form-control" />
                 <span asp-validation-for="Picture" class="text-danger"></span>
             </div> *@
+            <!-- File input for adding an image -->
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <label for="photo" class="control-label">Add an image</label>
+                <input type="file" name="photo" class="form-control" accept="image/*" />
+            </div>
+            <div class="form-group mt-4">
+                <!-- Додано клас mt-4 для відступу зверху -->
+                <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
     </div>
