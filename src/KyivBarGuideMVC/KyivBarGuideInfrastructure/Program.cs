@@ -1,10 +1,15 @@
-using KyivBarGuideInfrastructure;
+﻿using KyivBarGuideInfrastructure;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddHttpClient("ChartApi", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:61668"); // Замініть на ваш реальний базовий URL
+});
 
 //access to db via sql server using configuration settings
 builder.Services.AddDbContext<KyivBarGuideContext>(option => option.UseSqlServer(

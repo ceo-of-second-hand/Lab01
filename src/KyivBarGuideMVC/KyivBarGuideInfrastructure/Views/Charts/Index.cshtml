@@ -1,0 +1,57 @@
+﻿@{
+    ViewData["Title"] = "Charts";
+}
+
+<div class="row">
+    <div class="col-6">
+        <div id="barsWithPhotoChart"></div>
+    </div>
+    <div class="col-6">
+        <div id="barsByThemeChart"></div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            // Дані для графіка "кількість барів з фотографією та без"
+            const barsWithPhotoData = @Html.Raw(Json.Serialize(ViewBag.BarsWithPhotoData));
+            const barsWithPhotoTable = new google.visualization.DataTable();
+            barsWithPhotoTable.addColumn('string', 'Категорія');
+            barsWithPhotoTable.addColumn('number', 'Кількість барів');
+            barsWithPhotoData.forEach(item => barsWithPhotoTable.addRow([item.category, item.count]));
+
+            const barsWithPhotoOptions = {
+                title: 'Бари з фото та без фото',
+                width: 500,
+                height: 400,
+                legend: { position: 'none' },
+            };
+
+            const barsWithPhotoChart = new google.visualization.PieChart(document.getElementById('barsWithPhotoChart'));
+            barsWithPhotoChart.draw(barsWithPhotoTable, barsWithPhotoOptions);
+
+            // Дані для графіка "кількість барів за тематикою"
+            const barsByThemeData = @Html.Raw(Json.Serialize(ViewBag.BarsByThemeData));
+            const barsByThemeTable = new google.visualization.DataTable();
+            barsByThemeTable.addColumn('string', 'Тема');
+            barsByThemeTable.addColumn('number', 'Кількість барів');
+            barsByThemeData.forEach(item => barsByThemeTable.addRow([item.category, item.count]));
+
+            const barsByThemeOptions = {
+                title: 'Бари за тематикою',
+                width: 500,
+                height: 400,
+                legend: { position: 'top' },
+            };
+
+            const barsByThemeChart = new google.visualization.PieChart(document.getElementById('barsByThemeChart'));
+            barsByThemeChart.draw(barsByThemeTable, barsByThemeOptions);
+        }
+    </script>
+}

@@ -34,6 +34,10 @@
                                asp-area="" asp-controller="FavouriteBars" asp-action="Index">Favourite Bars</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Charts" ? "active fw-bold" : "")"
+                               asp-area="" asp-controller="Charts" asp-action="Index">Charts</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Privacy" ? "active fw-bold" : "")"
                                asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
