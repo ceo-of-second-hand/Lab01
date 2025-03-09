@@ -23,7 +23,7 @@ namespace KyivBarGuideInfrastructure.Controllers
             var barsWithPhotoData = await barsWithPhotoResponse.Content.ReadFromJsonAsync<List<BarCategoryStat>>();
 
             // Отримуємо дані для графіка "кількість барів за тематикою"
-            var barsByThemeResponse = await _httpClient.GetAsync("http://localhost:61668/api/chart/bars-with-photo");
+            var barsByThemeResponse = await _httpClient.GetAsync("http://localhost:61668/api/chart/bars-by-theme");
             var barsByThemeData = await barsByThemeResponse.Content.ReadFromJsonAsync<List<BarCategoryStat>>();
 
             // Передаємо дані у View

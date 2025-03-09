@@ -4,6 +4,14 @@
 
 <div class="row">
     <div class="col-6">
+        <!-- Виноска з поясненням кольорів -->
+        <div style="margin-bottom: 20px;">
+            <strong>Color Legend:</strong>
+            <ul>
+                <li><span style="color: #3366cc;">■</span> With Photo</li>
+                <li><span style="color: #dc3912;">■</span> Without Photo</li>
+            </ul>
+        </div>
         <div id="barsWithPhotoChart"></div>
     </div>
     <div class="col-6">
@@ -22,15 +30,17 @@
             // Дані для графіка "кількість барів з фотографією та без"
             const barsWithPhotoData = @Html.Raw(Json.Serialize(ViewBag.BarsWithPhotoData));
             const barsWithPhotoTable = new google.visualization.DataTable();
-            barsWithPhotoTable.addColumn('string', 'Категорія');
-            barsWithPhotoTable.addColumn('number', 'Кількість барів');
-            barsWithPhotoData.forEach(item => barsWithPhotoTable.addRow([item.category, item.count]));
+            barsWithPhotoTable.addColumn('string', 'Category');
+            barsWithPhotoTable.addColumn('number', 'Number of Bars');
+            barsWithPhotoData.forEach(item => barsWithPhotoTable.addRow([item.category === "With Photo" ? "With Photo" : "Without Photo", item.count]));
 
             const barsWithPhotoOptions = {
-                title: 'Бари з фото та без фото',
+                title: 'Bars With and Without Photos',
                 width: 500,
                 height: 400,
-                legend: { position: 'none' },
+                legend: { position: 'none' }, // Вимикаємо легенду, бо додали виноску
+                pieSliceText: 'label', // Відображаємо назви категорій на секторах
+                colors: ['#3366cc', '#dc3912'], // Задаємо кольори для секторів
             };
 
             const barsWithPhotoChart = new google.visualization.PieChart(document.getElementById('barsWithPhotoChart'));
@@ -39,18 +49,21 @@
             // Дані для графіка "кількість барів за тематикою"
             const barsByThemeData = @Html.Raw(Json.Serialize(ViewBag.BarsByThemeData));
             const barsByThemeTable = new google.visualization.DataTable();
-            barsByThemeTable.addColumn('string', 'Тема');
-            barsByThemeTable.addColumn('number', 'Кількість барів');
+            barsByThemeTable.addColumn('string', 'Theme');
+            barsByThemeTable.addColumn('number', 'Number of Bars');
             barsByThemeData.forEach(item => barsByThemeTable.addRow([item.category, item.count]));
 
             const barsByThemeOptions = {
-                title: 'Бари за тематикою',
+                title: 'Bars by Theme',
                 width: 500,
                 height: 400,
                 legend: { position: 'top' },
+                bars: 'horizontal',
+                hAxis: { title: 'Number of Bars' },
+                vAxis: { title: 'Theme' },
             };
 
-            const barsByThemeChart = new google.visualization.PieChart(document.getElementById('barsByThemeChart'));
+            const barsByThemeChart = new google.visualization.BarChart(document.getElementById('barsByThemeChart'));
             barsByThemeChart.draw(barsByThemeTable, barsByThemeOptions);
         }
     </script>

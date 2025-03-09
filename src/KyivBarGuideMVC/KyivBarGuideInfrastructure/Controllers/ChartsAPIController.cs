@@ -13,11 +13,11 @@ namespace KyivBarGuideInfrastructure.Controllers
 {
     [Route("api/chart")]
     [ApiController]
-    public class ChartController : ControllerBase
+    public class ChartsAPIController : ControllerBase
     {
         private readonly KyivBarGuideContext _context;
 
-        public ChartController(KyivBarGuideContext context)
+        public ChartsAPIController(KyivBarGuideContext context)
         {
             _context = context;
         }
