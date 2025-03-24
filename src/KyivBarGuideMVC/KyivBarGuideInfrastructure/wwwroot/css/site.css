@@ -1,4 +1,18 @@
-﻿
+﻿/* Заголовки (h1, Меню тощо) */
+h1, h2, h3, h4, h5, h6,
+.navbar .container-fluid .navbar-brand,
+.nav-link,
+#menuSection,
+#cocktailFormSection {
+    font-family: 'Noto Serif', serif !important;
+}
+
+/* Вибір барів, інпути, кнопки (наприклад, Select a bar) */
+input, textarea, select, button {
+    font-family: 'Bitter', sans-serif !important;
+    font-weight: 100 !important;
+}
+
 /* Налаштовуємо стиль для посилань у навігаційній панелі */
 .navbar .container-fluid .navbar-brand {
     font-family: 'Alex Brush', cursive !important;
@@ -67,3 +81,26 @@ h1 {
     font-weight: bold !important;
 }
 
+#menuSection {
+    height: 500px;
+    overflow-y: auto;
+    background: url('C:\Users\Ivanka\Desktop\isttp\lr01\implementation\src\KyivBarGuideMVC\KyivBarGuideInfrastructure\wwwroot\images\menu_cover.jpg') no-repeat center center;
+    background-size: cover;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: inset 5px 0 15px rgba(0, 0, 0, 0.1), inset -5px 0 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid #d4c0b1;
+    position: relative;
+}
+
+.btn-warning {
+    background-color: #d1d1d1 !important; /* Світло-сірий */
+    border-color: #d1d1d1 !important;
+    color: #000 !important;
+}
+
+.btn-info {
+    background-color: #F1E0E6 !important; /* Baby-pink */
+    border-color: #F1E0E6 !important;
+    color: #000 !important;
+}

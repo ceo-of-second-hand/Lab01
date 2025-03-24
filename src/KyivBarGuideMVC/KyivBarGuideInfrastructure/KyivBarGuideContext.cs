@@ -133,7 +133,7 @@ public partial class KyivBarGuideContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK_Cocktail");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                //.ValueGeneratedNever() removed (wout migration)
                 .HasColumnName("id");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -179,10 +179,9 @@ public partial class KyivBarGuideContext : DbContext
         modelBuilder.Entity<Ingredient>(entity =>
         {
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                //.ValueGeneratedNever() removed (wout migration)
                 .HasColumnName("id");
             entity.Property(e => e.AddedById).HasColumnName("added_by_id");
-            entity.Property(e => e.IncludedInId).HasColumnName("included_in_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -218,7 +217,7 @@ public partial class KyivBarGuideContext : DbContext
         modelBuilder.Entity<Proportion>(entity =>
         {
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                //.ValueGeneratedNever() removed for migration MakeFieldAutoIncrementedIdPropotions
                 .HasColumnName("id");
             entity.Property(e => e.Amount)
                 .HasMaxLength(10)

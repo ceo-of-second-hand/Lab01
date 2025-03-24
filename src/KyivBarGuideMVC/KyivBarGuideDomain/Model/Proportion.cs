@@ -6,7 +6,7 @@ public partial class Proportion
 
     public int AmountInId { get; set; }
 
-    public int SetById { get; set; }
+    public int? SetById { get; set; }
 
     public int AmountOfId { get; set; }
 

@@ -171,16 +171,16 @@ namespace KyivBarGuideInfrastructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToFavourites(int barId)
         {
-                var favouriteBar = new FavouriteBar
-                {
-                    AddedId = barId,
-                    // = clientId.Value                    WAITING TO BE ALTERED
-                };
+            var favouriteBar = new FavouriteBar
+            {
+                AddedId = barId,
+                // = clientId.Value                    WAITING TO BE ALTERED
+            };
 
-                TempData["SuccessMessage"] = "Bar added to favourites!";
+            TempData["SuccessMessage"] = "Bar added to favourites!";
 
-                _context.Add(favouriteBar);
-                await _context.SaveChangesAsync();
+            _context.Add(favouriteBar);
+            await _context.SaveChangesAsync();
             return RedirectToAction("Details", "Bars", new { id = barId });
             //return Json(new { success = true });
         }
@@ -213,11 +213,11 @@ namespace KyivBarGuideInfrastructure.Controllers
 
         public async Task<IActionResult> RemoveFromFavourites(int barId)
         {
-   
+
 
             // Знаходимо запис у таблиці FavouriteBars
             var favouriteBar = await _context.FavouriteBars
-                .FirstOrDefaultAsync(fb =>  fb.AddedId == barId);
+                .FirstOrDefaultAsync(fb => fb.AddedId == barId);
 
             if (favouriteBar != null)
             {
@@ -229,3 +229,5 @@ namespace KyivBarGuideInfrastructure.Controllers
         }
     }
 }
+
+

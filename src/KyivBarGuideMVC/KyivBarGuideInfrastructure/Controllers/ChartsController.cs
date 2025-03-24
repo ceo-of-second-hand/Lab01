@@ -8,26 +8,25 @@ namespace KyivBarGuideInfrastructure.Controllers
 {
     public class ChartsController : Controller
     {
-        private readonly HttpClient _httpClient;
+        //THINK OF REPLACING IT TO PROGRAM.CS OR Move API calls from the controller into a dedicated service
+        private readonly HttpClient _httpClient; //class used to send HTTP requests and receive HTTP responses from web services.
 
         public ChartsController(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
-        // Метод для відображення сторінки з графіками
+        //for displaying charts 
         public async Task<IActionResult> Index()
         {
-            // Отримуємо дані для графіка "кількість барів з фотографією та без"
             var barsWithPhotoResponse = await _httpClient.GetAsync("http://localhost:61668/api/chart/bars-with-photo");
             var barsWithPhotoData = await barsWithPhotoResponse.Content.ReadFromJsonAsync<List<BarCategoryStat>>();
 
-            // Отримуємо дані для графіка "кількість барів за тематикою"
             var barsByThemeResponse = await _httpClient.GetAsync("http://localhost:61668/api/chart/bars-by-theme");
             var barsByThemeData = await barsByThemeResponse.Content.ReadFromJsonAsync<List<BarCategoryStat>>();
 
-            // Передаємо дані у View
-            ViewBag.BarsWithPhotoData = barsWithPhotoData;
+            // transefing data to view
+            ViewBag.BarsWithPhotoData = barsWithPhotoData; //BarsWithPhotoData - dynamic property of ViewBag (enabling usage of them in cshtml)
             ViewBag.BarsByThemeData = barsByThemeData;
 
             return View();

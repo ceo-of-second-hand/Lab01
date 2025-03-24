@@ -2,6 +2,9 @@
 using KyivBarGuideDomain.Model;
 using KyivBarGuideInfrastructure;
 using System.Threading.Tasks;
+using OfficeOpenXml;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
 
 namespace KyivBarGuideInfrastructure.Controllers
 {
@@ -16,6 +19,57 @@ namespace KyivBarGuideInfrastructure.Controllers
 
         // New method for creating reservations with barId
         // GET: Reservations/Create?barId=5
+
+
+        [HttpGet]
+        public IActionResult ExportReservationsToExcel(
+     [FromQuery] int barId,              // Required bar ID
+     [FromQuery] DateTime? endDate)      // Optional end date
+        {
+            // Set default end date (today + 7 days)
+            var endDateValue = endDate ?? DateTime.Now.AddDays(7);
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var endDateOnly = DateOnly.FromDateTime(endDateValue);
+
+            // Get reservations ONLY for the specified bar
+            var reservations = _context.Reservations
+                .Where(r => r.ReservedInId == barId)          // Filter by bar
+                .Where(r => r.Date >= today && r.Date <= endDateOnly)  // Date range
+                .OrderBy(r => r.Date)
+                .ToList();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // or LicenseContext.Commercial
+
+
+            // Generate Excel
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Reservations");
+
+                // Headers
+                worksheet.Cells[1, 1].Value = "Date";
+                worksheet.Cells[1, 2].Value = "Smoker Status";
+
+                // Data
+                for (int i = 0; i < reservations.Count; i++)
+                {
+                    worksheet.Cells[i + 2, 1].Value = reservations[i].Date.ToString("yyyy-MM-dd");
+                    worksheet.Cells[i + 2, 2].Value = reservations[i].SmokerStatus ? "Yes" : "No";
+                }
+
+                // Formatting
+                worksheet.Cells[1, 1, 1, 2].Style.Font.Bold = true;
+                worksheet.Cells.AutoFitColumns();
+
+                // Return file
+                var stream = new MemoryStream(package.GetAsByteArray());
+                return File(
+                    stream,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Bar_{barId}_Reservations_{today:yyyyMMdd}_To_{endDateOnly:yyyyMMdd}.xlsx"
+                );
+            }
+        }
         public IActionResult Create(int? barId)
         {
             if (barId == null)

@@ -22,32 +22,30 @@ namespace KyivBarGuideInfrastructure.Controllers
             _context = context;
         }
 
-        // Метод для отримання даних про кількість барів з фотографією та без фотографії
         [HttpGet("bars-with-photo")]
         public IActionResult GetBarsWithPhoto()
         {
             var data = _context.Bars
-                .GroupBy(b => b.Picture != null) // Групуємо за наявністю фотографії
-                .Select(g => new BarCategoryStat
+                .GroupBy(b => b.Picture != null) 
+                .Select(g => new BarCategoryStat //creating new object with corresponding theme
                 {
-                    Category = g.Key ? "With Photo" : "Without Photo", // Категорія: з фото чи без
-                    Count = g.Count() // Кількість барів
+                    Category = g.Key ? "With Photo" : "Without Photo", 
+                    Count = g.Count() 
                 })
                 .ToList();
 
             return Ok(data);
         }
 
-        // Метод для отримання даних про кількість барів за тематикою
         [HttpGet("bars-by-theme")]
         public IActionResult GetBarsByTheme()
         {
             var data = _context.Bars
-                .GroupBy(b => b.Theme) // Групуємо за тематикою
+                .GroupBy(b => b.Theme) 
                 .Select(g => new BarCategoryStat
                 {
-                    Category = g.Key ?? "No Theme", // Якщо тематика відсутня, використовуємо "No Theme"
-                    Count = g.Count() // Кількість барів
+                    Category = g.Key ?? "No Theme",
+                    Count = g.Count() 
                 })
                 .ToList();
 

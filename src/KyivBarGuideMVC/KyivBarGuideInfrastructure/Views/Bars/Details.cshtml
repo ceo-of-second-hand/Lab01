@@ -59,6 +59,36 @@
             </form>
         }
 
+        <!-- Excel Export Section -->
+        <div class="mt-4 mb-4">
+            <!-- Added mb-4 for bottom margin -->
+            <h5 class="mb-3">Export Reservations</h5>  <!-- Added mb-3 -->
+            <form asp-controller="Reservations"
+                  asp-action="ExportReservationsToExcel"
+                  method="get"
+                  class="form-inline mb-3">
+                <!-- Added mb-3 -->
+                <input type="hidden" name="barId" value="@Model.Id" />
+
+                <div class="form-group mr-3 mb-2">
+                    <!-- Added mb-2 and increased mr-3 -->
+                    <label for="endDate" class="mr-2 mb-0">End Date:</label>
+                    <input type="date"
+                           id="endDate"
+                           name="endDate"
+                           class="form-control"
+                           min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                           value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
+                </div>
+
+                <button type="submit" class="btn btn-success mb-2">
+                    <!-- Added mb-2 -->
+                    <i class="fas fa-file-excel"></i> Export to Excel
+                </button>
+            </form>
+            <small class="text-muted d-block">Exports reservations from today until selected date</small>  <!-- Added d-block -->
+        </div>
+
         <!-- Кнопки "Edit" та "Back to List" -->
         <div class="mt-3">
             <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |

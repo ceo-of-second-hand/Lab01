@@ -8,8 +8,8 @@
         <div style="margin-bottom: 20px;">
             <strong>Color Legend:</strong>
             <ul>
-                <li><span style="color: #3366cc;">■</span> With Photo</li>
-                <li><span style="color: #dc3912;">■</span> Without Photo</li>
+                <li><span style="color: #ca0e50;">■</span> With Photo</li>
+                <li><span style="color: #332429;">■</span> Without Photo</li>
             </ul>
         </div>
         <div id="barsWithPhotoChart"></div>
@@ -27,7 +27,7 @@
         google.charts.setOnLoadCallback(drawCharts);
 
         function drawCharts() {
-            // Дані для графіка "кількість барів з фотографією та без"
+            // Number of bars with/without photo
             const barsWithPhotoData = @Html.Raw(Json.Serialize(ViewBag.BarsWithPhotoData));
             const barsWithPhotoTable = new google.visualization.DataTable();
             barsWithPhotoTable.addColumn('string', 'Category');
@@ -38,15 +38,15 @@
                 title: 'Bars With and Without Photos',
                 width: 500,
                 height: 400,
-                legend: { position: 'none' }, // Вимикаємо легенду, бо додали виноску
-                pieSliceText: 'label', // Відображаємо назви категорій на секторах
-                colors: ['#3366cc', '#dc3912'], // Задаємо кольори для секторів
+                legend: { position: 'none' }, // hides the default legend
+                pieSliceText: 'label',
+                colors: ['#332429', '#ca0e50'],
             };
 
             const barsWithPhotoChart = new google.visualization.PieChart(document.getElementById('barsWithPhotoChart'));
             barsWithPhotoChart.draw(barsWithPhotoTable, barsWithPhotoOptions);
 
-            // Дані для графіка "кількість барів за тематикою"
+            // Bars by theme 
             const barsByThemeData = @Html.Raw(Json.Serialize(ViewBag.BarsByThemeData));
             const barsByThemeTable = new google.visualization.DataTable();
             barsByThemeTable.addColumn('string', 'Theme');
@@ -54,13 +54,14 @@
             barsByThemeData.forEach(item => barsByThemeTable.addRow([item.category, item.count]));
 
             const barsByThemeOptions = {
-                title: 'Bars by Theme',
-                width: 500,
-                height: 400,
-                legend: { position: 'top' },
-                bars: 'horizontal',
-                hAxis: { title: 'Number of Bars' },
-                vAxis: { title: 'Theme' },
+                    title: 'Bars by Theme',
+                    width: 500,
+                    height: 400,
+                    legend: { position: 'top' },
+                    bars: 'horizontal',
+                    hAxis: { title: 'Number of Bars' },
+                    vAxis: { title: 'Theme' },
+                    colors: ['#332429'],
             };
 
             const barsByThemeChart = new google.visualization.BarChart(document.getElementById('barsByThemeChart'));

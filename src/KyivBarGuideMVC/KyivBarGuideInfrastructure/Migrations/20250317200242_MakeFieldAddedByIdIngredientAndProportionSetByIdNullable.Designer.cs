@@ -4,6 +4,7 @@ using KyivBarGuideInfrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KyivBarGuideInfrastructure.Migrations
 {
     [DbContext(typeof(KyivBarGuideContext))]
-    partial class KyivBarGuideContextModelSnapshot : ModelSnapshot
+    [Migration("20250317200242_MakeFieldAddedByIdIngredientAndProportionSetByIdNullable")]
+    partial class MakeFieldAddedByIdIngredientAndProportionSetByIdNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,15 +100,6 @@ namespace KyivBarGuideInfrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("float");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -157,11 +151,8 @@ namespace KyivBarGuideInfrastructure.Migrations
             modelBuilder.Entity("KyivBarGuideDomain.Model.Cocktail", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -221,15 +212,16 @@ namespace KyivBarGuideInfrastructure.Migrations
             modelBuilder.Entity("KyivBarGuideDomain.Model.Ingredient", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("AddedById")
                         .HasColumnType("int")
                         .HasColumnName("added_by_id");
+
+                    b.Property<int>("IncludedInId")
+                        .HasColumnType("int")
+                        .HasColumnName("included_in_id");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -279,11 +271,8 @@ namespace KyivBarGuideInfrastructure.Migrations
             modelBuilder.Entity("KyivBarGuideDomain.Model.Proportion", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Amount")
                         .IsRequired()

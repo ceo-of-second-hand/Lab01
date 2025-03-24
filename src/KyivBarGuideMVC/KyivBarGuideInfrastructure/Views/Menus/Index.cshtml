@@ -1,0 +1,230 @@
+﻿<style>
+    /* Загальний контейнер кожного коктейлю */
+    .cocktail-item {
+        position: relative; /* Для коректного накладання (z-index) */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #ddd;
+        padding: 10px 0;
+        min-height: 70px; /* Щоб блоки не стрибали по висоті */
+    }
+    /* Ліва частина з назвою та описом */
+    .cocktail-info {
+        flex: 1;
+        margin-right: 10px;
+    }
+
+    .cocktail-image-container {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        margin-right: 10px;
+    }
+
+        .cocktail-image-container::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            z-index: 1;
+        }
+
+    .cocktail-image {
+        width: auto;
+        height: 60px;
+        object-fit: contain; /* змінюємо на contain */
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+
+    .cocktail-image-container:hover .cocktail-image {
+        transform: scale(2);
+        z-index: 9999;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    
+</style>
+<div class="container mt-4">
+    <h2>Choose Bar</h2>
+    <select id="barPicker" class="form-select mb-4" style="width: 50%; min-width: 300px;">
+        <option value="">Select a bar</option>
+        @foreach (var bar in Model)
+        {
+            <option value="@bar.Id">@bar.Name</option>
+        }
+    </select>
+
+    <div class="row">
+        <!-- Ліва колонка для форми -->
+        <div class="col-md-6" id="cocktailFormSection" style="display:none;">
+            <h4>Add new cocktail</h4>
+            <form id="addCocktailForm" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label">Cocktail Name</label>
+                    <input type="text" class="form-control" name="name" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Price$</label>
+                    <input type="number" step="0.01" class="form-control" name="price" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Cocktail Image</label>
+                    <input type="file" class="form-control" name="picture" accept="image/*" />
+                </div>
+
+                <h5>Ingredients</h5>
+                <div id="ingredientsSection">
+                    @for (int i = 0; i < 3; i++)
+                    {
+                        <div class="row mb-2 ingredient-row">
+                            <div class="col">
+                                <input type="text" class="form-control ingredient-name" placeholder="Ingredient" />
+                            </div>
+                            <div class="col">
+                                <input type="text" class="form-control ingredient-amount" placeholder="Amount" />
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="d-flex flex-column">
+                    <button type="button" id="addIngredientBtn" class="btn btn-secondary btn-sm mb-2">+ Add Ingredient</button>
+                    <button type="submit" id="addCocktailBtn" class="btn btn-primary">Add Cocktail</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Права колонка для меню -->
+        <div class="col-md-6">
+            <h4>Menu</h4>
+            <div id="menuSection" class="border p-2" style="height: 500px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Підключення jQuery UI для автокомпліту -->
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <script>
+        let selectedBarId = null;
+
+        // Зміна бару в списку
+        $('#barPicker').on('change', function () {
+            selectedBarId = $(this).val();
+            if (selectedBarId) {
+                loadMenu(selectedBarId);
+                $('#cocktailFormSection').show();
+            } else {
+                $('#cocktailFormSection').hide();
+                $('#menuSection').html('');
+            }
+        });
+
+        // Завантажити меню для вибраного бару
+        function loadMenu(barId) {
+            $.get(`/Menus/GetCocktailsForBar?barId=${barId}`, function (data) {
+                let html = '';
+                data.forEach(c => {
+                    html += `
+                        <div class="cocktail-item">
+                            <div class="cocktail-info">
+                                <strong>${c.name}</strong> - $${c.price}<br/>
+                                <small>${c.ingredients.map(i => i.ingredientName + ' (' + i.amount + ')').join(', ')}</small>
+                            </div>
+                            <div class="cocktail-image-container">
+                                ${c.picture ? `<img src="/${c.picture}" class="cocktail-image" />` : ''}
+                            </div>
+                            <button class="btn btn-danger btn-sm delete-btn" data-id="${c.id}">Delete</button>
+                        </div>
+                    `;
+                });
+                $('#menuSection').html(html);
+            });
+        }
+
+        // Видалення коктейлю
+        $(document).on('click', '.delete-btn', function () {
+            const cocktailId = $(this).data('id');
+            $.post('/Menus/DeleteCocktail', { cocktailId }, function () {
+                loadMenu(selectedBarId);
+            });
+        });
+
+        // Додавання полів інгредієнтів
+        $('#addIngredientBtn').on('click', function () {
+            $('#ingredientsSection').append(`
+                <div class="row mb-2 ingredient-row">
+                    <div class="col">
+                        <input type="text" class="form-control ingredient-name" placeholder="Ingredient" />
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control ingredient-amount" placeholder="Amount" />
+                    </div>
+                </div>
+            `);
+        });
+
+        // Автокомпліт для інгредієнтів
+        $(document).on('input', '.ingredient-name', function () {
+            const input = $(this);
+            const term = input.val();
+            if (term.length >= 2) {
+                $.get('/Menus/SearchIngredients?term=' + term, function (data) {
+                    input.autocomplete({
+                        source: data,
+                        minLength: 0,
+                        delay: 100
+                    }).autocomplete("search", term); // показує список одразу
+                });
+            }
+        });
+
+        // Відправка форми (додавання коктейлю) з файлом
+        $('#addCocktailForm').on('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('barId', selectedBarId);
+
+            $('.ingredient-row').each(function (index) {
+                const ingredientName = $(this).find('.ingredient-name').val();
+                const amount = $(this).find('.ingredient-amount').val();
+                if (ingredientName && amount) {
+                    formData.append(`proportions[${index}].ingredientName`, ingredientName);
+                    formData.append(`proportions[${index}].amount`, amount);
+                }
+            });
+
+            $.ajax({
+                url: '/Menus/AddCocktail',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function () {
+                    loadMenu(selectedBarId);
+                    $('#addCocktailForm')[0].reset();
+                    $('#ingredientsSection').html('');
+                    // Відновлення базових трьох полів для інгредієнтів
+                    for (let i = 0; i < 3; i++) {
+                        $('#ingredientsSection').append(`
+                            <div class="row mb-2 ingredient-row">
+                                <div class="col">
+                                    <input type="text" class="form-control ingredient-name" placeholder="Ingredient" />
+                                </div>
+                                <div class="col">
+                                    <input type="text" class="form-control ingredient-amount" placeholder="Amount" />
+                                </div>
+                            </div>
+                        `);
+                    }
+                }
+            });
+        });
+    </script>
+}

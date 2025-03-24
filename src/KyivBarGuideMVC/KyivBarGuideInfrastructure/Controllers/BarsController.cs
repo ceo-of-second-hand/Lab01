@@ -60,7 +60,7 @@ namespace KyivBarGuideInfrastructure.Controllers
 
         //deleted Rating and Picture since do not wanna show them on first page
         //removed id since it is not changable
-        public async Task<IActionResult> Create([Bind("Name,Theme")] Bar bar, IFormFile? photo)
+        public async Task<IActionResult> Create([Bind("Name,Theme,Address,Latitude,Longitude")] Bar bar, IFormFile? photo)
         {
             if (ModelState.IsValid)
             {

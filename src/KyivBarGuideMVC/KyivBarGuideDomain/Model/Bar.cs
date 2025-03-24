@@ -16,6 +16,12 @@ public partial class Bar
 
     public string? Picture { get; set; }
 
+    public string? Address { get; set; } //for migration AddNewFieldsBarAddress
+
+    public double? Latitude { get; set; } //for migration AddNewFieldsBarGoogleMaps 
+
+    public double? Longitude { get; set; } //for migration AddNewFieldsBarGoogleMaps 
+
     public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
 
     public virtual ICollection<Cocktail> Cocktails { get; set; } = new List<Cocktail>();
