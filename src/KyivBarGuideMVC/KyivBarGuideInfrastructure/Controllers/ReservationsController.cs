@@ -19,7 +19,53 @@ namespace KyivBarGuideInfrastructure.Controllers
 
         // New method for creating reservations with barId
         // GET: Reservations/Create?barId=5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportReservations(IFormFile file, int barId)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Error"] = "Please select a file to upload";
+                return RedirectToAction("Details", "Bars", new { id = barId });
+            }
 
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets[0];
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        for (int row = 2; row <= rowCount; row++) // Start from row 2 (skip header)
+                        {
+                            var reservation = new Reservation
+                            {
+                                ReservedInId = barId,
+                                Date = DateOnly.FromDateTime(DateTime.Parse(worksheet.Cells[row, 1].Text)),
+                                SmokerStatus = worksheet.Cells[row, 2].Text.Equals("Yes", StringComparison.OrdinalIgnoreCase),
+                                ReservedById = null, // Set to current user ID when authentication is implemented
+                                ConfirmedById = null
+                            };
+
+                            _context.Reservations.Add(reservation);
+                        }
+
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                TempData["Success"] = "Reservations imported successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error importing file: {ex.Message}";
+            }
+
+            return RedirectToAction("Details", "Bars", new { id = barId });
+        }
 
         [HttpGet]
         public IActionResult ExportReservationsToExcel(

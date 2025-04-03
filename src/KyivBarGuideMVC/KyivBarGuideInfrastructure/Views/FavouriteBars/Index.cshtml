@@ -1,35 +1,45 @@
 ﻿@model IEnumerable<KyivBarGuideDomain.Model.FavouriteBar>
 
 @{
-    ViewData["Title"] = "Favourites";
+    ViewData["Title"] = "Favourite Bars";
+    var defaultImage = "/images/default-bar.jpg"; // Default image path
 }
 
-<h1>Favourite Bars</h1>
+<h1 class="mb-4">Favourite Bars</h1>
+<p>
+    <a asp-action="Create" class="btn btn-success mb-3">Add New Bar</a>
+</p>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Added)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                <a asp-controller="Bars" asp-action="Details" asp-route-id="@item.AddedId">@item.Added.Name</a>
-                 @* @Html.DisplayFor(modelItem => item.Added.Name) --> *@
-            </td>
-                <td class="text-end">
-                    <!-- Замінюємо посилання на форму для видалення -->
-                    <form asp-controller="FavouriteBars" asp-action="RemoveExactlyFromFavourites" method="post">
-                        <input type="hidden" name="barId" value="@item.AddedId" />
-                        <button type="submit" class="btn btn-danger">Remove</button>
-                    </form>
-                </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card" style="
+                position: relative;
+                width: 100%;
+                min-height: 300px;
+                display: flex;
+                flex-direction: column;
+                background: #fff;
+                border: 1px solid black;
+                border-radius: 0;
+                overflow: hidden;
+                box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+                ">
+                <img class="card-img-top" src="@(string.IsNullOrEmpty(item.Added.Picture) ? defaultImage : item.Added.Picture)" alt="@item.Added.Name" style="height: 180px; object-fit: cover; border-bottom: 1px solid black;">
+                <div class="card-body" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 15px;">
+                    <div>
+                        <h5 class="card-title">@item.Added.Name</h5>
+                    </div>
+                    <div>
+                        <a asp-controller="Bars"  asp-action="Details" asp-route-id="@item.Added.Id" class="btn btn-info">View</a>
+                        <form asp-action="RemoveExactlyFromFavourites" method="post" style="display: inline;">
+                            <input type="hidden" name="barId" value="@item.Added.Id" />
+                            <button type="submit" class="btn btn-danger">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

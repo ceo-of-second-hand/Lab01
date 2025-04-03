@@ -11,20 +11,35 @@
     <div class="col-md-8 d-flex flex-column">
         <h4>Bar</h4>
         <hr />
-        <dl class="row">
-            <dt class="col-sm-2">
-                @Html.DisplayNameFor(model => model.Name)
-            </dt>
-            <dd class="col-sm-10">
-                @Html.DisplayFor(model => model.Name)
-            </dd>
-            <dt class="col-sm-2">
-                @Html.DisplayNameFor(model => model.Theme)
-            </dt>
-            <dd class="col-sm-10">
-                @Html.DisplayFor(model => model.Theme)
-            </dd>
-        </dl>
+        <!-- Додаємо рядок з інформацією про бар та кнопкою PDF -->
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <dl class="row">
+                    <dt class="col-sm-3">
+                        @Html.DisplayNameFor(model => model.Name)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Name)
+                    </dd>
+                    <dt class="col-sm-3">
+                        @Html.DisplayNameFor(model => model.Theme)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Theme)
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-4">
+                <!-- Додано напис "Bar menu" -->
+                <h5 class="text-center mb-2" style="font-size: 1.25rem; font-weight: 500; line-height: 1.2;">Bar Menu</h5>
+                <!-- Кнопка PDF по центру -->
+                <div class="text-center">
+                    <button id="viewPdfBtn" class="btn btn-info" data-bar-id="@Model.Id">
+                        <i class="fas fa-file-pdf"></i> View menu in PDF
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Додаємо блок для відображення повідомлення про резервування -->
         @if (TempData["ProcessingMessage"] != null)
@@ -80,6 +95,30 @@
                            min="@DateTime.Now.ToString("yyyy-MM-dd")"
                            value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
                 </div>
+                
+
+                @section Scripts {
+                    <script>
+                        $(document).ready(function () {
+                            $('#viewPdfBtn').click(function () {
+                                var barId = $(this).data('bar-id');
+                                var $btn = $(this);
+                                $btn.prop('disabled', true);
+                                $btn.html('<i class="fas fa-spinner fa-spin"></i> Generating...');
+
+                                $.get('/Menus/GeneratePdfMenu', { barId: barId }, function (data) {
+                                    if (data.pdfUrl) {
+                                        window.open(data.pdfUrl, '_blank'); // Відкриваємо PDF у новій вкладці
+                                    }
+                                }).always(function () {
+                                    $btn.prop('disabled', false);
+                                    $btn.html('<i class="fas fa-file-pdf"></i> View menu in PDF');
+                                });
+                            });
+                        });
+                    </script>
+                }
+
 
                 <button type="submit" class="btn btn-success mb-2">
                     <!-- Added mb-2 -->

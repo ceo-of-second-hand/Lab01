@@ -1,8 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using KyivBarGuideDomain.Model;
+using iText.IO.Image;
 using Microsoft.AspNetCore.Hosting;
 using System;
+using iText.Kernel.Pdf;
+using iText.Layout.Element;
+using iText.Layout.Properties;
+using iText.Kernel.Pdf.Canvas.Draw;
+using iText.Kernel.Colors;
+using iText.IO.Font.Constants;
+using iText.Kernel.Font;
 
 namespace KyivBarGuideInfrastructure.Controllers;
 
@@ -158,6 +169,101 @@ public class MenusController : Controller
         await _context.SaveChangesAsync();
         return Ok("Cocktail deleted");
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GeneratePdfMenu(int barId)
+    {
+        try
+        {
+            var bar = await _context.Bars.FindAsync(barId);
+            if (bar == null)
+            {
+                return NotFound("Bar not found");
+            }
+
+            string pdfsPath = Path.Combine(_environment.WebRootPath, "pdfs");
+            Directory.CreateDirectory(pdfsPath);
+            string fileName = $"menu_{barId}.pdf";
+            string filePath = Path.Combine(pdfsPath, fileName);
+
+            var cocktails = await _context.Cocktails
+                .Where(c => c.SellsIn == barId)
+                .Include(c => c.Proportions)
+                .ThenInclude(p => p.AmountOf)
+                .ToListAsync();
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                var writer = new PdfWriter(stream);
+                var pdf = new PdfDocument(writer);
+                var doc = new Document(pdf);
+
+                // Встановлення світло-рожевого фону
+                doc.SetBackgroundColor(new DeviceRgb(255, 228, 225));
+
+                // Заголовок меню
+                doc.Add(new Paragraph($"Menu for {bar.Name}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(20)
+                    .SetMarginBottom(20));
+
+                foreach (var cocktail in cocktails)
+                {
+                    // Назва коктейлю жирним
+                    var cocktailTitle = new Paragraph($"{cocktail.Name} - ${cocktail.Price}")
+                        .SetFontSize(16)
+                        .SetMarginBottom(5);
+                    doc.Add(cocktailTitle);
+
+                    // Інгредієнти
+                    string ingredients = string.Join(", ",
+                        cocktail.Proportions.Select(p => $"{p.AmountOf.Name} ({p.Amount})"));
+                    doc.Add(new Paragraph($"Ingredients: {ingredients}")
+                        .SetFontSize(12)
+                        .SetMarginBottom(10));
+
+                    // Додаємо зображення
+                    if (!string.IsNullOrEmpty(cocktail.Picture))
+                    {
+                        string imagePath = Path.Combine(_environment.WebRootPath,
+                            cocktail.Picture.TrimStart('~', '/'));
+
+                        if (System.IO.File.Exists(imagePath))
+                        {
+                            try
+                            {
+                                var imageData = ImageDataFactory.Create(imagePath);
+                                var image = new Image(imageData)
+                                    .ScaleToFit(150, 150) // Автоматичне масштабування
+                                    .SetHorizontalAlignment(HorizontalAlignment.CENTER)
+                                    .SetMarginBottom(10);
+                                doc.Add(image);
+                            }
+                            catch
+                            {
+                                doc.Add(new Paragraph("[Image unavailable]"));
+                            }
+                        }
+                    }
+
+                    // Роздільна лінія між коктейлями
+                    doc.Add(new LineSeparator(new SolidLine())
+                        .SetMarginTop(10)
+                        .SetMarginBottom(10));
+                }
+
+                doc.Close();
+            }
+
+            string pdfUrl = Url.Content($"~/pdfs/{fileName}");
+            return Json(new { pdfUrl = pdfUrl });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"PDF generation error: {ex}");
+            return StatusCode(500, new { error = "PDF generation failed", details = ex.Message });
+        }
+    }
 }
 
 // DTO для пропорцій
@@ -166,3 +272,4 @@ public class ProportionDto
     public string IngredientName { get; set; } = null!;
     public string Amount { get; set; } = null!;
 }
+

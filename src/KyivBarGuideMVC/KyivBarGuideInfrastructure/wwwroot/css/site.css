@@ -7,6 +7,32 @@ h1, h2, h3, h4, h5, h6,
     font-family: 'Noto Serif', serif !important;
 }
 
+/* Загальні стилі для заголовків */
+h1 {
+    font-family: 'Noto Serif', serif !important;
+    position: relative; /* Для позиціонування фону */
+    display: inline-block;
+}
+
+    /* Стиль для підсвічування заголовка віньєткою */
+    h1::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 150%;
+        background: radial-gradient( ellipse at center, #F1E0E6 0%, /* Яскравіший, насиченіший рожевий в центрі */
+        rgba(241, 140, 160, 0.9) 30%, /* Яскравіше згасання */
+        rgba(241, 140, 160, 0) 70% /* Повністю прозорий ззовні */
+        );
+        border-radius: 50%;
+        z-index: -1;
+        transform: translate(-50%, -50%);
+        filter: blur(12px);
+    }
+
+
 /* Вибір барів, інпути, кнопки (наприклад, Select a bar) */
 input, textarea, select, button {
     font-family: 'Bitter', sans-serif !important;
@@ -103,4 +129,9 @@ h1 {
     background-color: #F1E0E6 !important; /* Baby-pink */
     border-color: #F1E0E6 !important;
     color: #000 !important;
+}
+
+.btn {
+    font-family: 'Bitter', sans-serif !important;
+    font-weight: 600 !important;
 }
