@@ -171,7 +171,8 @@
                        .text(newStatus);
         });
 
-         $('#applyChangesBtn').on('click', function () {
+        // Застосування змін
+        $('#applyChangesBtn').on('click', function () {
             if (Object.keys(changedReservations).length === 0) return;
 
             $.ajax({
@@ -179,12 +180,15 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(changedReservations),
-                success: function (updatedBarIds) {
-                    if (selectedBarId && updatedBarIds.includes(parseInt(selectedBarId))) {
+                success: function () {
+                    alert('Changes applied successfully!');
+                    $('#applyChangesBtn').prop('disabled', true);
+                    changedReservations = {};
+
+                    // Оновити список резервувань
+                    if (selectedBarId) {
                         loadReservations(selectedBarId);
                     }
-                    changedReservations = {};
-                    $('#applyChangesBtn').prop('disabled', true);
                 },
                 error: function () {
                     alert('Error applying changes. Please try again.');

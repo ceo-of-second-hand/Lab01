@@ -17,6 +17,12 @@ namespace KyivBarGuideInfrastructure.Controllers
             _context = context;
         }
 
+        public IActionResult Index()
+        {
+            var bars = _context.Bars.ToList(); // Отримуємо список барів з бази даних
+            return View(bars); // Передаємо цей список у вигляд
+        }
+
         // New method for creating reservations with barId
         // GET: Reservations/Create?barId=5
         [HttpPost]
@@ -138,7 +144,7 @@ namespace KyivBarGuideInfrastructure.Controllers
         // POST: Reservations/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int barId, bool smokerStatus, DateOnly date)
+        public async Task<IActionResult> Create(int barId, bool smokerStatus, DateOnly date, TimeOnly time, string status)
         {
             // check
             if (date < DateOnly.FromDateTime(DateTime.Now))
@@ -160,6 +166,8 @@ namespace KyivBarGuideInfrastructure.Controllers
                 ReservedInId = barId, // Storing barId in ReservedInId (This links the reservation to the bar)
                 SmokerStatus = smokerStatus,
                 Date = date,
+                Time = time,
+                //Status = status, // Status is set to "Pending" by default in the model
                 ReservedById = null, // dummy client Id (WAITING TO BE CHANGED LATER AND THAT FIELD TO BE SET BACK TO NOT NULLABLE)
                 ConfirmedById = null // dummy admin Id (WAITING TO BE CHANGED LATER  AND THAT FIELD TO BE SET BACK TO NOT NULLABLE)
             };
@@ -173,38 +181,77 @@ namespace KyivBarGuideInfrastructure.Controllers
             // Redirect to bar details page after reservation creation (New functionality)
             return RedirectToAction("Details", "Bars", new { id = barId });
         }
+        // Додайте ці методи в кінець вашого контролера, перед закриваючою дужкою класу
 
-        // Old code (for comparison)
-        // GET: Reservations
-        // returns Index.cshtml with list of reservations
-        // public async Task<IActionResult> Index() { ... }
+        [HttpGet]
+        public async Task<IActionResult> GetReservationsForBar(int barId)
+        {
+            var reservations = await _context.Reservations
+                .Include(r => r.ReservedBy)  // Додаємо клієнта
+                .Where(r => r.ReservedInId == barId)
+                .Where(r => r.Status != "Confirmed" && r.Status != "Declined") // Додаємо фільтр
+                .Select(r => new
+                {
+                    id = r.Id,
+                    reservedBy = r.ReservedBy != null ? new { name = r.ReservedBy.Name } : null,
+                    smokerStatus = r.SmokerStatus,
+                    concertVisit = r.ConcertVisit,
+                    date = r.Date,
+                    time = r.Time.ToString("hh\\:mm"),
+                    status = r.Status
+                })
+                .ToListAsync();
 
-        // GET: Reservations/Details/
-        // public async Task<IActionResult> Details(int? id) { ... }
+            return Json(reservations);
+        }
 
-        // GET: Reservations/Create (Old version)
-        // public IActionResult Create() { 
-        //   ViewData["ConfirmedById"] = new SelectList(_context.Admins, "Id", "Name"); 
-        //   ViewData["ReservedById"] = new SelectList(_context.Clients, "Id", "Name");
-        //   return View(); 
-        // }
+        /*[HttpPost]
+        public async Task<IActionResult> UpdateReservationStatuses([FromBody] Dictionary<int, string> statusUpdates)
+        {
+            if (statusUpdates == null || !statusUpdates.Any())
+                return BadRequest("No changes to apply");
 
-        // POST: Reservations/Create (Old version)
-        // public async Task<IActionResult> Create([Bind("Id,ReservedById,ReservedInId,ConfirmedById,SmokerStatus,ConcertVisit,Date")] Reservation reservation) { ... }
+            foreach (var update in statusUpdates)
+            {
+                var reservation = await _context.Reservations.FindAsync(update.Key);
+                if (reservation != null)
+                {
+                    reservation.Status = update.Value;
+                }
+            }
 
-        // GET: Reservations/Edit/5
-        // public async Task<IActionResult> Edit(int? id) { ... }
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        */
+        [HttpPost]
+        public async Task<IActionResult> UpdateReservationStatuses([FromBody] Dictionary<int, string> statusUpdates)
+        {
+            if (statusUpdates == null || !statusUpdates.Any())
+                return BadRequest("No changes to apply");
 
-        // POST: Reservations/Edit/5
-        // public async Task<IActionResult> Edit(int id, [Bind("Id,ReservedById,ReservedInId,ConfirmedById,SmokerStatus,ConcertVisit,Date")] Reservation reservation) { ... }
+            var updatedBarIds = new HashSet<int>();
 
-        // GET: Reservations/Delete/5
-        // public async Task<IActionResult> Delete(int? id) { ... }
+            foreach (var update in statusUpdates)
+            {
+                var reservation = await _context.Reservations
+                    .FirstOrDefaultAsync(r => r.Id == update.Key);
 
-        // POST: Reservations/Delete/5
-        // public async Task<IActionResult> DeleteConfirmed(int id) { ... }
+                if (reservation != null && (reservation.Status != update.Value))
+                {
+                    reservation.Status = update.Value;
 
-        // Method to check if reservation exists
-        // private bool ReservationExists(int id) { ... }
+                    if (update.Value == "Confirmed" || update.Value == "Declined")
+                    {
+                        reservation.IsStatusViewed = false;
+                        updatedBarIds.Add(reservation.ReservedInId);
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(updatedBarIds.ToList()); // Повертаємо лише ті бари, де були зміни
+        }
     }
+
 }

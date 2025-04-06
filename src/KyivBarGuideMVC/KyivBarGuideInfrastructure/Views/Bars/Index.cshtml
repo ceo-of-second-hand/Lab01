@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "List of Bars";
     var defaultImage = "/images/default-bar.jpg"; // Default image path
+    var barsWithUnviewedUpdates = ViewBag.BarsWithUnviewedUpdates as List<int> ?? new List<int>();
+}
 }
 
 <h1 class="mb-4">List of Bars</h1>
@@ -13,6 +15,7 @@
 <div class="row">
     @foreach (var item in Model)
     {
+        bool hasUnviewedUpdates = barsWithUnviewedUpdates.Contains(item.Id);
         <div class="col-md-4 mb-4">
             <div class="card" style="
     position: relative;
@@ -29,6 +32,11 @@
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
             ">
                 <img class="card-img-top" src="@(string.IsNullOrEmpty(item.Picture) ? defaultImage : item.Picture)" alt="@item.Name" style="height: 200px; object-fit: cover; border-bottom: 2px solid #ccc;">
+                <!-- Іконка зміни статусу -->
+                @if (hasUnviewedUpdates)
+                {
+                    <img src="/images/updated_icon.png" alt="Updated" style="position: absolute; top: 10px; right: 10px; width: 30px; height: 30px;">
+                }
                 <div class="card-body" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px;">
                     <div>
                         <h5 class="card-title">@item.Name</h5>

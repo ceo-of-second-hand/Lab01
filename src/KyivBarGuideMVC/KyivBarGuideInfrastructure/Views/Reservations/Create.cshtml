@@ -18,6 +18,13 @@
             </div>
 
             <div class="form-group">
+                <label for="time">Reservation time:</label>
+                <input type="time" id="time" name="time" class="form-control" required />
+                <span asp-validation-for="Time" class="text-danger"></span>
+            </div>
+
+
+            <div class="form-group">
                 <label for="smokerStatus">Book in a smoking area:</label>
                 <select id="smokerStatus" name="smokerStatus" class="form-control" required>
                     <option value="false">No</option>

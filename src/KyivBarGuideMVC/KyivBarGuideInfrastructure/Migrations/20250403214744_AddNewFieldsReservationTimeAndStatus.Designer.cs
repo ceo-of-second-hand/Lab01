@@ -4,6 +4,7 @@ using KyivBarGuideInfrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KyivBarGuideInfrastructure.Migrations
 {
     [DbContext(typeof(KyivBarGuideContext))]
-    partial class KyivBarGuideContextModelSnapshot : ModelSnapshot
+    [Migration("20250403214744_AddNewFieldsReservationTimeAndStatus")]
+    partial class AddNewFieldsReservationTimeAndStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -335,9 +338,6 @@ namespace KyivBarGuideInfrastructure.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date")
                         .HasColumnName("date");
-
-                    b.Property<bool>("IsStatusViewed")
-                        .HasColumnType("bit");
 
                     b.Property<int?>("ReservedById")
                         .HasColumnType("int")

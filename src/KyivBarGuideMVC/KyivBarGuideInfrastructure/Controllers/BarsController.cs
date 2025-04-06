@@ -22,9 +22,21 @@ namespace KyivBarGuideInfrastructure.Controllers
         // GET: Bars
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Bars.ToListAsync());
+            var bars = await _context.Bars.ToListAsync();
+
+            // Отримуємо ID барів з непереглянутими оновленнями
+            var barsWithUnviewedUpdates = await _context.Reservations
+                .Where(r => (r.Status == "Confirmed" || r.Status == "Declined") && !r.IsStatusViewed)
+                .Select(r => r.ReservedInId)
+                .Distinct()
+                .ToListAsync();
+
+            ViewBag.BarsWithUnviewedUpdates = barsWithUnviewedUpdates;
+
+            return View(bars);
         }
 
+        // GET: Bars/Details/5
         // GET: Bars/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -33,14 +45,47 @@ namespace KyivBarGuideInfrastructure.Controllers
                 return NotFound();
             }
 
+            // Отримуємо бар з бази даних
             var bar = await _context.Bars
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (bar == null)
             {
                 return NotFound();
             }
 
-            //check whether bar was added to favourites
+            // Отримуємо ВСІ резервування для цього бару
+            var allReservations = await _context.Reservations
+                .Where(r => r.ReservedInId == id)
+                .Include(r => r.ReservedBy)  // Підвантажуємо дані клієнта
+                .ToListAsync();
+
+            // Фільтруємо резервування для відображення:
+            // 1. Всі зі статусом "Pending" (завжди показуються)
+            // 2. Ті, що мають статус "Confirmed/Declined" і ще не переглянуті
+            var reservationsToShow = allReservations
+                .Where(r => r.Status == "Pending" ||
+                           ((r.Status == "Confirmed" || r.Status == "Declined") && !r.IsStatusViewed))
+                .ToList();
+
+            // Позначаємо "Confirmed/Declined" резервування як переглянуті
+            var reservationsToMark = allReservations
+                .Where(r => (r.Status == "Confirmed" || r.Status == "Declined") && !r.IsStatusViewed)
+                .ToList();
+
+            foreach (var reservation in reservationsToMark)
+            {
+                reservation.IsStatusViewed = true;
+            }
+
+            // Зберігаємо зміни в базі даних
+            if (reservationsToMark.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            // Передаємо дані у View
+            ViewBag.Reservations = reservationsToShow;
             ViewBag.IsFavourite = await IsBarFavourite(bar.Id);
 
             return View(bar);
@@ -247,5 +292,56 @@ namespace KyivBarGuideInfrastructure.Controllers
         {
             return _context.Bars.Any(e => e.Id == id);
         }
+        /*[HttpPost]
+        public async Task<IActionResult> UpdateReservationStatuses([FromBody] Dictionary<int, string> statusUpdates)
+        {
+            if (statusUpdates == null || !statusUpdates.Any())
+                return BadRequest("No changes to apply");
+
+            // Список Id барів, для яких змінився статус
+            var updatedBarIds = new HashSet<int>();
+
+            foreach (var update in statusUpdates)
+            {
+                var reservation = await _context.Reservations.FindAsync(update.Key);
+                if (reservation != null)
+                {
+                    reservation.Status = update.Value;
+                    updatedBarIds.Add(reservation.ReservedInId); // Додаємо id бару до списку
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Передаємо змінені barId в ViewData для використання в списку барів
+            ViewData["UpdatedBars"] = updatedBarIds;
+
+            return Ok();
+        }*/
+        /*
+        [HttpPost]
+        public async Task<IActionResult> UpdateReservationStatuses([FromBody] Dictionary<int, string> statusUpdates)
+        {
+            if (statusUpdates == null || !statusUpdates.Any())
+                return BadRequest("No changes to apply");
+
+            var updatedBarIds = new HashSet<int>();
+
+            foreach (var update in statusUpdates)
+            {
+                var reservation = await _context.Reservations.FindAsync(update.Key);
+                if (reservation != null)
+                {
+                    reservation.Status = update.Value;
+                    reservation.IsStatusViewed = false; // Додаємо флаг, що статус не переглянутий
+                    updatedBarIds.Add(reservation.ReservedInId);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(updatedBarIds); // Повертаємо ID оновлених барів
+        }
+        */
+
     }
 }

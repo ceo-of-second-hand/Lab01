@@ -27,6 +27,15 @@
                     <dd class="col-sm-9">
                         @Html.DisplayFor(model => model.Theme)
                     </dd>
+                    @if (ViewBag.Reservations != null && ((List<KyivBarGuideDomain.Model.Reservation>)ViewBag.Reservations).Any())
+                    {
+                        @foreach (var r in (List<KyivBarGuideDomain.Model.Reservation>)ViewBag.Reservations)
+                        {
+                            <div class="reservation-line">
+                                <em>Your booking for @r.Date.ToString("dddd") at @r.Time.ToString("hh:mm tt") is: @r.Status</em>
+                            </div>
+                        }
+                    }
                 </dl>
             </div>
             <div class="col-md-4">
@@ -41,12 +50,31 @@
             </div>
         </div>
 
+        
         <!-- Додаємо блок для відображення повідомлення про резервування -->
+        @*
         @if (TempData["ProcessingMessage"] != null)
         {
             <div class="mt-1" style="color: black; font-style: italic;">
                 @TempData["ProcessingMessage"]
             </div>
+        } 
+        *@
+
+        @if (ViewBag.Reservations != null && ((List<KyivBarGuideDomain.Model.Reservation>)ViewBag.Reservations).Any())
+        {
+            @foreach (var r in (List<KyivBarGuideDomain.Model.Reservation>)ViewBag.Reservations)
+            {
+                // Показуємо тільки якщо:
+                // - статус Pending, АБО
+                // - статус Confirmed/Declined, але ще не переглянуто
+                @if (r.Status == "Pending" || !r.IsStatusViewed)
+                {
+                    <div class="reservation-line">
+                        <em>Your booking for @r.Date.ToString("dddd") at @r.Time.ToString("hh:mm tt") is: @r.Status</em>
+                    </div>
+                }
+            }
         }
 
         <!-- Кнопка "Book a Table" -->
@@ -170,5 +198,15 @@
         height: 100%;
         object-fit: cover; /* Заповнює контейнер, зберігаючи пропорції */
         object-position: center; /* Центрує зображення */
+    }
+
+    .reservation-line {
+        background-color: #f8d7da; /* рожевий фон */
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-style: italic;
+        color: #721c24;
+        font-size: 1.1rem; /* Збільшений шрифт */
     }
 </style>

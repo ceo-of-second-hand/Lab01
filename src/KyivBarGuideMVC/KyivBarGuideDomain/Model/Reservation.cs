@@ -22,7 +22,13 @@ public partial class Reservation
     [Required(ErrorMessage = "please fill that field")]
     public DateOnly Date { get; set; }
 
-    public virtual Admin ConfirmedBy { get; set; } = null!;
+    [Required(ErrorMessage = "please fill that field")]
+    [DataType(DataType.Time)]
+    public TimeOnly Time { get; set; } = new TimeOnly(20, 0); //for migration AddNewFieldsReservationTimeAndStatus
 
+    [Column(TypeName = "varchar(20)")]
+    public string Status { get; set; } = "Pending"; //for migration AddNewFieldsReservationTimeAndStatus
+    public virtual Admin ConfirmedBy { get; set; } = null!;
     public virtual Client ReservedBy { get; set; } = null!;
+    public bool IsStatusViewed { get; set; } = false; //for migration AddNewFieldReservationSeenReservations
 }
