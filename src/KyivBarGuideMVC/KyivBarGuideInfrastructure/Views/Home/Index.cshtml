@@ -10,7 +10,7 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
-            <h1 class="display-4 mb-4">Welcome to KyivBarGuide</h1>
+            <h1 class="display-4 mb-4">KyivBarGuide</h1>
             <p class="lead mb-5">Your ultimate guide to Kyiv's vibrant bar scene</p>
 
             @if (SignInManager.IsSignedIn(User))
@@ -34,8 +34,8 @@
                             <div class="card-body">
                                 <p>Explore bars, make reservations, and discover new places</p>
                                 <div class="d-grid gap-2">
-                                    <a asp-controller="Clients" asp-action="Create" class="btn btn-secondary">Register as Client</a>
-                                    <a asp-controller="Clients" asp-action="Login" class="btn btn-primary">Client Login</a>
+                                    <a asp-controller="Clients" asp-action="Create" class="btn btn-secondary">Sign up as Client</a>
+                                    <a asp-controller="Clients" asp-action="Login" class="btn btn-primary">Sign in as Client</a>
                                 </div>
                             </div>
                         </div>
@@ -50,7 +50,7 @@
                                 <p>Manage your bar, update menus, and handle reservations</p>
                                 <div class="d-grid gap-2">
                                     <a asp-controller="AdminAuth" asp-action="SignUpAsAdmin" class="btn btn-secondary">Sign Up as Admin</a>
-                                    <a asp-controller="AdminAuth" asp-action="Login" class="btn btn-primary">Admin Login</a>
+                                    <a asp-controller="AdminAuth" asp-action="Login" class="btn btn-primary">Sign in as Admin</a>
                                 </div>
                             </div>
                         </div>

@@ -9,6 +9,7 @@ using KyivBarGuideDomain.Model;
 using KyivBarGuideInfrastructure;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using OfficeOpenXml;
 
 namespace KyivBarGuideInfrastructure.Controllers
 {
@@ -141,7 +142,7 @@ namespace KyivBarGuideInfrastructure.Controllers
             return View(bar);
         }
 
-        // GET: Bars/Edit/5
+        // GET: Bars/Edit
         public async Task<IActionResult> Edit()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -149,49 +150,41 @@ namespace KyivBarGuideInfrastructure.Controllers
                 .Include(a => a.WorkIn)
                 .FirstOrDefaultAsync(a => a.UserId == userId);
 
-            if (admin == null || admin.WorkIn == null)
+            if (admin?.WorkIn == null)
             {
                 return NotFound("You are not associated with any bar.");
             }
 
-            var bar = await _context.Bars
-                .Where(b => b.Id == admin.WorkIn.Id)
-                .ToListAsync();
-
-            return View(bar);
-        }
-
-        // POST: Bars/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-
-        //deleted Rating and Picture since do not wanna show them on first page
-        //removed id since it is set automatically
-        public async Task<IActionResult> Edit(int id, [Bind("Name,Theme")] Bar bar, IFormFile? photo)
-        {
-            if (id != bar.Id)
+            var bar = await _context.Bars.FindAsync(admin.WorkIn.Id);
+            if (bar == null)
             {
                 return NotFound();
             }
 
+            return View(bar);
+        }
+
+        // POST: Bars/Edit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit([Bind("Id,Name,Theme,Address,Latitude,Longitude")] Bar bar, IFormFile? photo)
+        {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // find the existing bar entry in the database
-                    var existingBar = await _context.Bars.FindAsync(id);
+                    var existingBar = await _context.Bars.FindAsync(bar.Id);
                     if (existingBar == null)
                     {
                         return NotFound();
                     }
 
-                    // update name and theme
                     existingBar.Name = bar.Name;
                     existingBar.Theme = bar.Theme;
+                    existingBar.Address = bar.Address;
+                    existingBar.Latitude = bar.Latitude;
+                    existingBar.Longitude = bar.Longitude;
 
-                    // if a new photo is provided, save it and update the picture field
                     if (photo != null && photo.Length > 0)
                     {
                         var permittedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
@@ -211,15 +204,13 @@ namespace KyivBarGuideInfrastructure.Controllers
                             await photo.CopyToAsync(stream);
                         }
 
-                        //suggetsion to add path.combina (cross platform)
-                        existingBar.Picture = "/images/" + fileName; 
+                        existingBar.Picture = "/images/" + fileName;
                     }
+
                     _context.Update(existingBar);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-
-                //KINDA DOUBTFUL
-                //checks whteher data was not changed simultaneously
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!BarExists(bar.Id))
@@ -231,7 +222,6 @@ namespace KyivBarGuideInfrastructure.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(bar);
         }
@@ -349,6 +339,81 @@ namespace KyivBarGuideInfrastructure.Controllers
             return Ok(updatedBarIds); // Повертаємо ID оновлених барів
         }
         */
+
+        // GET: Bars/ExportToExcel
+        [HttpGet]
+        [Route("Bars/ExportToExcel")]
+        public async Task<IActionResult> ExportToExcel(DateTime? startDate, DateTime? endDate)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var admin = await _context.Admins
+                .Include(a => a.WorkIn)
+                .FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (admin?.WorkIn == null)
+            {
+                return NotFound("You are not associated with any bar.");
+            }
+
+            // Set default dates if not provided
+            startDate ??= DateTime.Today;
+            endDate ??= DateTime.Today.AddDays(7);
+
+            // Convert DateTime to DateOnly for comparison
+            var startDateOnly = DateOnly.FromDateTime(startDate.Value);
+            var endDateOnly = DateOnly.FromDateTime(endDate.Value);
+
+            var reservations = await _context.Reservations
+                .Include(r => r.ReservedBy)
+                .Where(r => r.ReservedInId == admin.WorkIn.Id &&
+                           r.Date >= startDateOnly &&
+                           r.Date <= endDateOnly)
+                .OrderByDescending(r => r.Date)
+                .ThenBy(r => r.Time)
+                .ToListAsync();
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Reservations");
+                
+                // Add headers
+                worksheet.Cells[1, 1].Value = "Date";
+                worksheet.Cells[1, 2].Value = "Time";
+                worksheet.Cells[1, 3].Value = "Client Name";
+                worksheet.Cells[1, 4].Value = "Status";
+                worksheet.Cells[1, 5].Value = "Smoker Status";
+                worksheet.Cells[1, 6].Value = "Concert Visit";
+
+                // Style headers
+                using (var range = worksheet.Cells[1, 1, 1, 6])
+                {
+                    range.Style.Font.Bold = true;
+                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                }
+
+                // Add data
+                for (int i = 0; i < reservations.Count; i++)
+                {
+                    var reservation = reservations[i];
+                    worksheet.Cells[i + 2, 1].Value = reservation.Date.ToString("yyyy-MM-dd");
+                    worksheet.Cells[i + 2, 2].Value = reservation.Time.ToString(@"hh\:mm");
+                    worksheet.Cells[i + 2, 3].Value = reservation.ReservedBy?.Name;
+                    worksheet.Cells[i + 2, 4].Value = reservation.Status;
+                    worksheet.Cells[i + 2, 5].Value = reservation.SmokerStatus ? "Yes" : "No";
+                }
+
+                // Auto-fit columns
+                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                // Set the content type and file name
+                var fileName = $"Reservations_{startDateOnly:yyyyMMdd}-{endDateOnly:yyyyMMdd}.xlsx";
+                var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+                // Return the file
+                return File(package.GetAsByteArray(), contentType, fileName);
+            }
+        }
 
     }
 }
