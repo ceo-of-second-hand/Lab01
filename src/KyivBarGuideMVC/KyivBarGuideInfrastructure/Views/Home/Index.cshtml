@@ -1,8 +1,29 @@
-﻿@{
+﻿@using KyivBarGuideDomain.Model
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+    <div class="mt-4">
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <p class="mb-2">there is a table waiting for you that evening, @User.Identity.Name!</p>
+
+            <form asp-controller="Clients" asp-action="Logout" method="post">
+                <button type="submit" class="btn btn-danger m-2">Вийти</button>
+            </form>
+        }
+        else
+        {
+            <a asp-controller="Clients" asp-action="Create" class="btn btn-success m-2">Зареєструватися як клієнт</a>
+            <a asp-controller="Clients" asp-action="Login" class="btn btn-primary m-2">Увійти</a>
+        }
+    </div>
 </div>

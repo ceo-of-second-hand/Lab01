@@ -1,9 +1,10 @@
 ﻿using KyivBarGuideDomain.Model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace KyivBarGuideInfrastructure;
 
-public partial class KyivBarGuideContext : DbContext
+public partial class KyivBarGuideContext : IdentityDbContext<ApplicationUser> //identity management
 {
     public KyivBarGuideContext()
     {
@@ -42,12 +43,14 @@ public partial class KyivBarGuideContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);// identity management
+
         modelBuilder.Entity<Admin>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_Admin");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                //.ValueGeneratedNever() removed (wout migration)
                 .HasColumnName("id");
             entity.Property(e => e.Experience)
                 .HasColumnType("decimal(5, 2)")
@@ -62,6 +65,10 @@ public partial class KyivBarGuideContext : DbContext
                 .HasForeignKey(d => d.WorkInId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Run");
+            entity.HasOne(d => d.User)
+                .WithOne(p => p.AdminProfile)
+                .HasForeignKey<Admin>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Album>(entity =>
@@ -120,12 +127,16 @@ public partial class KyivBarGuideContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK_Client");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                //.ValueGeneratedNever() removed (wout migration)
                 .HasColumnName("id");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.HasOne(d => d.User)
+                .WithOne(p => p.ClientProfile)
+                .HasForeignKey<Client>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Cocktail>(entity =>
