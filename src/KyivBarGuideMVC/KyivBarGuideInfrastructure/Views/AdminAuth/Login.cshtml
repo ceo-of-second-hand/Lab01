@@ -1,7 +1,7 @@
-﻿@model KyivBarGuideInfrastructure.Controllers.ClientSignUpViewModel
+@model KyivBarGuideInfrastructure.Controllers.AdminLoginViewModel
 
 @{
-    ViewData["Title"] = "Create Client";
+    ViewData["Title"] = "Admin Login";
 }
 
 <div class="container mt-5">
@@ -9,10 +9,10 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h2 class="text-center">Create Client Account</h2>
+                    <h2 class="text-center">Admin Login</h2>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Login" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                         <div class="form-group mb-3">
@@ -28,19 +28,14 @@
                         </div>
 
                         <div class="form-group mb-3">
-                            <label asp-for="Name" class="control-label"></label>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="PhoneNumber" class="control-label"></label>
-                            <input asp-for="PhoneNumber" class="form-control" value="+380" />
-                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            <div class="form-check">
+                                <input asp-for="RememberMe" class="form-check-input" />
+                                <label asp-for="RememberMe" class="form-check-label"></label>
+                            </div>
                         </div>
 
                         <div class="form-group text-center">
-                            <button type="submit" class="btn btn-primary">Create Account</button>
+                            <button type="submit" class="btn btn-primary">Login</button>
                         </div>
                     </form>
                 </div>
@@ -51,4 +46,4 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+} 

@@ -1,18 +1,25 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using KyivBarGuideDomain.Model;
-using KyivBarGuideInfrastructure;
+using System.Threading.Tasks;
+using System.Security.Claims;
+using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace KyivBarGuideInfrastructure.Controllers
 {
-    public class ClientsController : Controller
+    public class AdminAuthController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly KyivBarGuideContext _context;
 
-        public ClientsController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, KyivBarGuideContext context)
+        public AdminAuthController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            KyivBarGuideContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -20,33 +27,53 @@ namespace KyivBarGuideInfrastructure.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public IActionResult SignUpAsAdmin()
         {
-            return View();
+            return View(new AdminSignUpViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(ClientSignUpViewModel model)
+        public async Task<IActionResult> SignUpAsAdmin(AdminSignUpViewModel model)
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser
+                // Check if user already has an admin profile
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
                 {
-                    UserName = model.Email,
-                    Email = model.Email,
-                    PhoneNumber = model.PhoneNumber,
-                };
+                    var existingAdmin = await _context.Admins
+                        .FirstOrDefaultAsync(a => a.UserId == existingUser.Id);
+                    if (existingAdmin != null)
+                    {
+                        ModelState.AddModelError("", "You are already registered as an admin");
+                        return View(model);
+                    }
+                }
 
+                // Create new bar
+                var bar = new Bar
+                {
+                    Name = model.BarName,
+                    Theme = model.BarTheme,
+                    BarPassword = model.Password // Using the same password for both bar and admin
+                };
+                _context.Bars.Add(bar);
+                await _context.SaveChangesAsync();
+
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 var result = await _userManager.CreateAsync(user, model.Password);
+
                 if (result.Succeeded)
                 {
-                    var client = new Client
+                    // Create admin profile
+                    var admin = new Admin
                     {
                         Name = model.Name,
-                        UserId = user.Id
+                        UserId = user.Id,
+                        WorkIn = bar
                     };
 
-                    _context.Clients.Add(client);
+                    _context.Admins.Add(admin);
                     await _context.SaveChangesAsync();
 
                     // Sign in the user
@@ -71,7 +98,7 @@ namespace KyivBarGuideInfrastructure.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(ClientLoginViewModel model)
+        public async Task<IActionResult> Login(AdminLoginViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -84,35 +111,29 @@ namespace KyivBarGuideInfrastructure.Controllers
             }
             return View(model);
         }
-
-        [HttpPost]
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
-        }
     }
 
-    public class ClientSignUpViewModel
+    public class AdminSignUpViewModel
     {
         [Required]
         [EmailAddress]
         public string Email { get; set; }
 
         [Required]
-        [MinLength(4, ErrorMessage = "Password must be at least 4 characters long")]
-        public string Password { get; set; }
-
-        [Required]
         public string Name { get; set; }
 
         [Required]
-        [Phone]
-        [RegularExpression(@"^\+?\d{10,15}$", ErrorMessage = "Invalid phone number format")]
-        public string PhoneNumber { get; set; }
+        public string BarName { get; set; }
+
+        [Required]
+        public string BarTheme { get; set; }
+
+        [Required]
+        [MinLength(4, ErrorMessage = "Password must be at least 4 characters long")]
+        public string Password { get; set; }
     }
 
-    public class ClientLoginViewModel
+    public class AdminLoginViewModel
     {
         [Required]
         [EmailAddress]
@@ -125,4 +146,4 @@ namespace KyivBarGuideInfrastructure.Controllers
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
     }
-}
+} 

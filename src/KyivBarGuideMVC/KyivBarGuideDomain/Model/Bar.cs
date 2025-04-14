@@ -22,6 +22,8 @@ public partial class Bar
 
     public double? Longitude { get; set; } //for migration AddNewFieldsBarGoogleMaps 
 
+    public string? BarPassword { get; set; } // for migration AddBarPasswordToBar
+
     public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
 
     public virtual ICollection<Cocktail> Cocktails { get; set; } = new List<Cocktail>();

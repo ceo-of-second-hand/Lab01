@@ -10,7 +10,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddHttpClient("ChartApi", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:61668"); // Замініть на ваш реальний базовий URL
+    client.BaseAddress = new Uri("https://localhost:61668");
 });
 
 //access to db via sql server using configuration settings
@@ -25,20 +25,26 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireLowercase = false; 
     options.Password.RequireUppercase = false; 
     options.Password.RequireNonAlphanumeric = false; 
-    options.Password.RequiredLength = 6; 
-    options.Password.RequiredUniqueChars = 1; 
+    options.Password.RequiredLength = 4; 
+    options.Password.RequiredUniqueChars = 0; 
 })
     .AddEntityFrameworkStores<KyivBarGuideContext>()
     .AddDefaultTokenProviders();
 
-//adding identity management
-//doubtful about that
+// Configure application cookie
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromDays(30); // Час життя Cookie (30 днів)
-    options.SlidingExpiration = true; // Оновлювати час життя при кожному запиті
+    options.LoginPath = "/Clients/Login";
+    options.AccessDeniedPath = "/Home/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromDays(30);
+    options.SlidingExpiration = true;
+});
+
+// Add authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireClientRole", policy => policy.RequireRole("Client"));
 });
 
 var app = builder.Build();
@@ -55,15 +61,11 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseAuthentication(); //identity management
+app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Bars}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
