@@ -1,4 +1,4 @@
-﻿@model IEnumerable<KyivBarGuideDomain.Model.Bar>
+﻿@model IEnumerable<KyivBarGuideDomain.Model.Reservation>
 
 @{
     ViewData["Title"] = "Manage Reservations";
@@ -56,102 +56,60 @@
     .status-declined {
         color: #dc3545;
     }
+
+    /* Animation for removing items */
+    .fade-out {
+        opacity: 0;
+        transition: opacity 0.5s ease-out;
+    }
 </style>
 
 <div class="container mt-4">
-    <h2>Manage Reservations</h2>
-
-    <!-- Вибір бару -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <select id="barPicker" class="form-select">
-                <option value="">All Bars</option>
-                @foreach (var bar in Model)
-                {
-                    <option value="@bar.Id">@bar.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-6 text-end">
-            <button id="applyChangesBtn" class="btn btn-primary" disabled>Apply Changes</button>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage Reservations for @ViewBag.BarName</h2>
+        <button id="applyChangesBtn" class="btn btn-primary" disabled>Apply Changes</button>
     </div>
 
     <!-- Таблиця резервувань -->
     <div id="reservationsSection" class="border p-3" style="height: 600px; overflow-y: auto;">
-        <div class="text-center text-muted py-5">
-            <i class="fas fa-calendar-alt fa-3x mb-3"></i>
-            <p>Select a bar to view reservations</p>
-        </div>
+        @if (Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="reservation-item" data-id="@item.Id">
+                    <div class="reservation-info">
+                        <div class="reservation-client">
+                            @item.ReservedBy.Name (@item.ReservedBy.User.PhoneNumber) - @(item.SmokerStatus ? "Smoking" : "Non-smoking") area
+                            @(item.ConcertVisit.HasValue ? (item.ConcertVisit.Value ? " (with concert)" : "") : "")
+                        </div>
+                        <div class="reservation-details">
+                            @item.Date.ToString("yyyy-MM-dd") at @item.Time.ToString("HH:mm") -
+                            <span class="status-@item.Status.ToLower()">@item.Status</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <select class="form-select status-selector" data-reservation-id="@item.Id">
+                            <option value="Pending" selected="@(item.Status == "Pending")">Pending</option>
+                            <option value="Confirmed" selected="@(item.Status == "Confirmed")">Confirmed</option>
+                            <option value="Declined" selected="@(item.Status == "Declined")">Declined</option>
+                        </select>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                <p>No reservations found</p>
+            </div>
+        }
     </div>
 </div>
 
 @section Scripts {
     <script>
-        let selectedBarId = null;
         let changedReservations = {}; // Об'єкт для зберігання змін статусів
-
-        // Зміна бару в списку
-        $('#barPicker').on('change', function () {
-            selectedBarId = $(this).val();
-            changedReservations = {}; // Очищаємо попередні зміни
-            $('#applyChangesBtn').prop('disabled', true);
-
-            if (selectedBarId) {
-                loadReservations(selectedBarId);
-            } else {
-                $('#reservationsSection').html(`
-                    <div class="text-center text-muted py-5">
-                        <i class="fas fa-calendar-alt fa-3x mb-3"></i>
-                        <p>Select a bar to view reservations</p>
-                    </div>
-                `);
-            }
-        });
-
-        // Завантажити резервування для вибраного бару
-        function loadReservations(barId) {
-            $.get(`/Reservations/GetReservationsForBar?barId=${barId}`, function (data) {
-                if (data.length === 0) {
-                    $('#reservationsSection').html(`
-                        <div class="text-center text-muted py-5">
-                            <i class="fas fa-calendar-times fa-3x mb-3"></i>
-                            <p>No reservations found for this bar</p>
-                        </div>
-                    `);
-                    return;
-                }
-
-                let html = '';
-                data.forEach(r => {
-                    // Визначаємо клас для статусу
-                    const statusClass = `status-${r.status.toLowerCase()}`;
-
-                    html += `
-                        <div class="reservation-item" data-id="${r.id}">
-                            <div class="reservation-info">
-                                <div class="reservation-client">
-                                    ${r.reservedBy?.name || 'Guest'} - ${r.smokerStatus ? 'Smoking' : 'Non-smoking'} area
-                                    ${r.concertVisit ? ' (with concert)' : ''}
-                                </div>
-                                <div class="reservation-details">
-                                    ${new Date(r.date).toLocaleDateString()} at ${r.time} -
-                                    <span class="${statusClass}">${r.status}</span>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <select class="form-select status-selector" data-reservation-id="${r.id}">
-                                    <option value="Pending" ${r.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="Confirmed" ${r.status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-                                    <option value="Declined" ${r.status === 'Declined' ? 'selected' : ''}>Declined</option>
-                                </select>
-                            </div>
-                        </div>
-                    `;
-                });
-                $('#reservationsSection').html(html);
-            });
-        }
 
         // Зміна статусу резервування
         $(document).on('change', '.status-selector', function () {
@@ -161,33 +119,52 @@
             // Зберігаємо зміну
             changedReservations[reservationId] = newStatus;
 
-            // Активація кнопки Apply Changes
-            $('#applyChangesBtn').prop('disabled', false);
-
             // Оновлення відображення статусу
             const statusElement = $(this).closest('.reservation-item').find('.reservation-details span');
             statusElement.removeClass('status-pending status-confirmed status-declined')
                        .addClass(`status-${newStatus.toLowerCase()}`)
                        .text(newStatus);
+
+            // Enable the Apply Changes button
+            $('#applyChangesBtn').prop('disabled', false);
         });
 
-         $('#applyChangesBtn').on('click', function () {
+        // Apply Changes button click handler
+        $('#applyChangesBtn').on('click', function() {
             if (Object.keys(changedReservations).length === 0) return;
 
+            // Відправляємо зміни на сервер
             $.ajax({
                 url: '/Reservations/UpdateReservationStatuses',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(changedReservations),
-                success: function (updatedBarIds) {
-                    if (selectedBarId && updatedBarIds.includes(parseInt(selectedBarId))) {
-                        loadReservations(selectedBarId);
-                    }
+                success: function () {
+                    // Remove confirmed/declined reservations with animation
+                    Object.entries(changedReservations).forEach(([id, status]) => {
+                        if (status === 'Confirmed' || status === 'Declined') {
+                            const $item = $(`.reservation-item[data-id="${id}"]`);
+                            $item.addClass('fade-out');
+                            setTimeout(() => {
+                                $item.remove();
+                                // If no more reservations, show the "No reservations found" message
+                                if ($('.reservation-item').length === 0) {
+                                    $('#reservationsSection').html(`
+                                        <div class="text-center text-muted py-5">
+                                            <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                                            <p>No reservations found</p>
+                                        </div>
+                                    `);
+                                }
+                            }, 500);
+                        }
+                    });
+                    
                     changedReservations = {};
                     $('#applyChangesBtn').prop('disabled', true);
                 },
                 error: function () {
-                    alert('Error applying changes. Please try again.');
+                    alert('Error updating status. Please try again.');
                 }
             });
         });

@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KyivBarGuideDomain.Model;
 using KyivBarGuideInfrastructure;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace KyivBarGuideInfrastructure.Controllers
 {
+    [Authorize]
     public class BarsController : Controller
     {
         private readonly KyivBarGuideContext _context;
@@ -139,18 +142,22 @@ namespace KyivBarGuideInfrastructure.Controllers
         }
 
         // GET: Bars/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit()
         {
-            if (id == null)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var admin = await _context.Admins
+                .Include(a => a.WorkIn)
+                .FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (admin == null || admin.WorkIn == null)
             {
-                return NotFound();
+                return NotFound("You are not associated with any bar.");
             }
 
-            var bar = await _context.Bars.FindAsync(id);
-            if (bar == null)
-            {
-                return NotFound();
-            }
+            var bar = await _context.Bars
+                .Where(b => b.Id == admin.WorkIn.Id)
+                .ToListAsync();
+
             return View(bar);
         }
 

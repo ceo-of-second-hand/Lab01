@@ -1,4 +1,12 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using KyivBarGuideDomain.Model
+@using System.Linq
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject KyivBarGuideContext _context
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -27,22 +35,35 @@
                                asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Bars" ? "active fw-bold" : "")"
-                               asp-area="" asp-controller="Bars" asp-action="Index">List of Bars</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Bars" asp-action="Index">Bars</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "FavouriteBars" ? "active fw-bold" : "")"
-                               asp-area="" asp-controller="FavouriteBars" asp-action="Index">Favourite Bars</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Menus" ? "active fw-bold" : "")"
-                               asp-area="" asp-controller="Menus" asp-action="Index">Menu</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reservations" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active fw-bold" : "")"
-                               asp-area="" asp-controller="Reservations" asp-action="Index">Reservations</a>
-                        </li>
-
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var user = await UserManager.GetUserAsync(User);
+                            var isAdmin = await _context.Admins.AnyAsync(a => a.UserId == user.Id);
+                            if (!isAdmin)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "FavouriteBars" ? "active fw-bold" : "")"
+                                       asp-area="" asp-controller="FavouriteBars" asp-action="Index">Favourite Bars</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Bars" && ViewContext.RouteData.Values["Action"]?.ToString() == "Edit" ? "active fw-bold" : "")"
+                                       asp-area="" asp-controller="Bars" asp-action="Edit">Edit Bars</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reservations" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active fw-bold" : "")"
+                                       asp-area="" asp-controller="Reservations" asp-action="Index">Reservations</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Menus" ? "active fw-bold" : "")"
+                                       asp-area="" asp-controller="Menus" asp-action="Index">Menu</a>
+                                </li>
+                            }
+                        }
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Charts" ? "active fw-bold" : "")"
                                asp-area="" asp-controller="Charts" asp-action="Index">Charts</a>

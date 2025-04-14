@@ -288,7 +288,7 @@ namespace KyivBarGuideInfrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AddedById")
+                    b.Property<int>("AddedById")
                         .HasColumnType("int")
                         .HasColumnName("added_by_id");
 
@@ -688,6 +688,7 @@ namespace KyivBarGuideInfrastructure.Migrations
                     b.HasOne("KyivBarGuideDomain.Model.Client", "AddedBy")
                         .WithMany("FavouriteBars")
                         .HasForeignKey("AddedById")
+                        .IsRequired()
                         .HasConstraintName("Add");
 
                     b.HasOne("KyivBarGuideDomain.Model.Bar", "Added")

@@ -1,59 +1,83 @@
-﻿@model KyivBarGuideDomain.Model.Bar
+﻿@model IEnumerable<KyivBarGuideDomain.Model.Bar>
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Manage Bars";
 }
 
-<h1>Edit</h1>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>@ViewData["Title"]</h2>
+        <div>
+            <a asp-action="Create" class="btn btn-success me-2">Create New</a>
+            <a asp-action="ExportToExcel" class="btn btn-info">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </a>
+        </div>
+    </div>
 
-<h4>Bar</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <!-- Added enctype attribute to enable file uploads -->
-        <form asp-action="Edit" method="post" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            @*id remains in hidden mode here for proper work of processes*@
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+    <!-- Excel Export Section -->
+    <div class="mb-4">
+        <h5 class="mb-3">Export Reservations</h5>
+        <form asp-controller="Reservations"
+              asp-action="ExportReservationsToExcel"
+              method="get"
+              class="form-inline mb-3">
+            <div class="form-group mr-3 mb-2">
+                <label for="endDate" class="mr-2 mb-0">End Date:</label>
+                <input type="date"
+                       id="endDate"
+                       name="endDate"
+                       class="form-control"
+                       min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                       value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
             </div>
-            <div class="form-group">
-                <label asp-for="Theme" class="control-label"></label>
-                <input asp-for="Theme" class="form-control" />
-                <span asp-validation-for="Theme" class="text-danger"></span>
-            </div>
-            @* <div class="form-group">
-                <label asp-for="Rating" class="control-label"></label>
-                <input asp-for="Rating" class="form-control" />
-                <span asp-validation-for="Rating" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Picture" class="control-label"></label>
-                <input asp-for="Picture" class="form-control" />
-                <span asp-validation-for="Picture" class="text-danger"></span>
-            </div> *@
-            <!-- File input for adding an image -->
-            <div class="form-group">
-                <label for="photo" class="control-label">Add an image</label>
-                <input type="file" name="photo" class="form-control" accept="image/*" />
-            </div>
-            <div class="form-group mt-4">
-                <!-- Додано клас mt-4 для відступу зверху -->
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+            <button type="submit" class="btn btn-success mb-2">
+                <i class="fas fa-file-excel"></i> Export Reservations to Excel
+            </button>
         </form>
+        <small class="text-muted d-block">Exports reservations from today until selected date</small>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.Theme)</th>
+                    <th>@Html.DisplayNameFor(model => model.Address)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Theme)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Address)</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Details</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <script>
+        $(document).ready(function() {
+            // Add confirmation for delete action
+            $('.btn-danger').on('click', function(e) {
+                if (!confirm('Are you sure you want to delete this bar?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 }

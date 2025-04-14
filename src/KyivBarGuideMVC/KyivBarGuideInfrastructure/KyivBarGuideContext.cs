@@ -172,7 +172,7 @@ public partial class KyivBarGuideContext : IdentityDbContext<ApplicationUser> //
                 //.ValueGeneratedNever() removed for migration MakeFieldAutoIncrementedIdFavouriteBars
                 .HasColumnName("id");
             entity.Property(e => e.AddedById)
-                .IsRequired(false) //added for migration "MakeFieldNullableAddedByFavouriteBarsTEMP"
+                .IsRequired() 
                 .HasColumnName("added_by_id");
             entity.Property(e => e.AddedId).HasColumnName("added_id");
 
@@ -272,6 +272,8 @@ public partial class KyivBarGuideContext : IdentityDbContext<ApplicationUser> //
 
             entity.HasOne(d => d.ReservedBy).WithMany(p => p.Reservations)
                 .HasForeignKey(d => d.ReservedById)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired()
                 .HasConstraintName("Make");
         });
 

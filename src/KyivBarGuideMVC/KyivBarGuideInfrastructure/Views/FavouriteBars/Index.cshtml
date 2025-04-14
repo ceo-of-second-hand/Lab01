@@ -6,9 +6,6 @@
 }
 
 <h1 class="mb-4">Favourite Bars</h1>
-<p>
-    <a asp-action="Create" class="btn btn-success mb-3">Add New Bar</a>
-</p>
 
 <div class="row">
     @foreach (var item in Model)
@@ -32,9 +29,8 @@
                         <h5 class="card-title">@item.Added.Name</h5>
                     </div>
                     <div>
-                        <a asp-controller="Bars"  asp-action="Details" asp-route-id="@item.Added.Id" class="btn btn-info">View</a>
-                        <form asp-action="RemoveExactlyFromFavourites" method="post" style="display: inline;">
-                            <input type="hidden" name="barId" value="@item.Added.Id" />
+                        <a asp-controller="Bars" asp-action="Details" asp-route-id="@item.Added.Id" class="btn btn-info">View</a>
+                        <form asp-action="RemoveFromFavourites" asp-route-barId="@item.AddedId" method="post" style="display: inline;">
                             <button type="submit" class="btn btn-danger">Remove</button>
                         </form>
                     </div>

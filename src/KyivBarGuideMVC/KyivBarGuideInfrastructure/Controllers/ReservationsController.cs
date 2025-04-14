@@ -5,9 +5,12 @@ using System.Threading.Tasks;
 using OfficeOpenXml;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KyivBarGuideInfrastructure.Controllers
 {
+    [Authorize]
     public class ReservationsController : Controller
     {
         private readonly KyivBarGuideContext _context;
@@ -17,10 +20,33 @@ namespace KyivBarGuideInfrastructure.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var bars = _context.Bars.ToList(); // Отримуємо список барів з бази даних
-            return View(bars); // Передаємо цей список у вигляд
+            // Get the current user's ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            // Get the admin using the UserId
+            var admin = await _context.Admins
+                .Include(a => a.WorkIn)
+                .FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (admin?.WorkIn == null)
+            {
+                return NotFound("You are not associated with any bar.");
+            }
+
+            // Get ONLY PENDING reservations for the admin's bar
+            var reservations = await _context.Reservations
+                .Include(r => r.ReservedBy)
+                    .ThenInclude(c => c.User)
+                .Where(r => r.ReservedInId == admin.WorkIn.Id)
+                .Where(r => r.Status == "Pending") // Only show pending reservations
+                .OrderByDescending(r => r.Date)
+                .ThenBy(r => r.Time)
+                .ToListAsync();
+
+            ViewBag.BarName = admin.WorkIn.Name;
+            return View(reservations);
         }
 
         // New method for creating reservations with barId
@@ -37,6 +63,15 @@ namespace KyivBarGuideInfrastructure.Controllers
 
             try
             {
+                // Get the current user's client ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+                
+                if (client == null)
+                {
+                    return NotFound("Client profile not found.");
+                }
+
                 using (var stream = new MemoryStream())
                 {
                     await file.CopyToAsync(stream);
@@ -45,15 +80,14 @@ namespace KyivBarGuideInfrastructure.Controllers
                         var worksheet = package.Workbook.Worksheets[0];
                         var rowCount = worksheet.Dimension.Rows;
 
-                        for (int row = 2; row <= rowCount; row++) // Start from row 2 (skip header)
+                        for (int row = 2; row <= rowCount; row++)
                         {
                             var reservation = new Reservation
                             {
                                 ReservedInId = barId,
                                 Date = DateOnly.FromDateTime(DateTime.Parse(worksheet.Cells[row, 1].Text)),
                                 SmokerStatus = worksheet.Cells[row, 2].Text.Equals("Yes", StringComparison.OrdinalIgnoreCase),
-                                ReservedById = null, // Set to current user ID when authentication is implemented
-                                ConfirmedById = null
+                                ReservedById = client.Id // Set the actual client ID
                             };
 
                             _context.Reservations.Add(reservation);
@@ -146,11 +180,20 @@ namespace KyivBarGuideInfrastructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(int barId, bool smokerStatus, DateOnly date, TimeOnly time, string status)
         {
+            // Get the current user's client ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+            
+            if (client == null)
+            {
+                return NotFound("Client profile not found.");
+            }
+
             // check
             if (date < DateOnly.FromDateTime(DateTime.Now))
             {
                 ModelState.AddModelError("Date", "Reservation date can't be in the past");
-                ViewBag.BarId = barId; // Повертаємо barId для повторного відображення форми
+                ViewBag.BarId = barId;
                 return View();
             }
             var bar = await _context.Bars.FindAsync(barId);
@@ -159,26 +202,20 @@ namespace KyivBarGuideInfrastructure.Controllers
                 return NotFound();
             }
 
-            // Creating a new reservation (New logic introduced in second version)
+            // Creating a new reservation
             var reservation = new Reservation
             {
-
-                ReservedInId = barId, // Storing barId in ReservedInId (This links the reservation to the bar)
+                ReservedInId = barId,
                 SmokerStatus = smokerStatus,
                 Date = date,
                 Time = time,
-                //Status = status, // Status is set to "Pending" by default in the model
-                ReservedById = null, // dummy client Id (WAITING TO BE CHANGED LATER AND THAT FIELD TO BE SET BACK TO NOT NULLABLE)
-                ConfirmedById = null // dummy admin Id (WAITING TO BE CHANGED LATER  AND THAT FIELD TO BE SET BACK TO NOT NULLABLE)
+                ReservedById = client.Id // Set the actual client ID
             };
 
-            // Add new reservation to database
             _context.Reservations.Add(reservation);
             await _context.SaveChangesAsync();
 
             TempData["ProcessingMessage"] = $"Reservation #{reservation.Id} is : BEING PROCESSED⚙️";
-
-            // Redirect to bar details page after reservation creation (New functionality)
             return RedirectToAction("Details", "Bars", new { id = barId });
         }
         // Додайте ці методи в кінець вашого контролера, перед закриваючою дужкою класу
@@ -250,7 +287,7 @@ namespace KyivBarGuideInfrastructure.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return Ok(updatedBarIds.ToList()); // Повертаємо лише ті бари, де були зміни
+            return Ok(updatedBarIds.ToList()); // Return the list of updated bar IDs
         }
     }
 

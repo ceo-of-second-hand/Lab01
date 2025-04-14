@@ -7,23 +7,40 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KyivBarGuideDomain.Model;
 using KyivBarGuideInfrastructure;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace KyivBarGuideInfrastructure.Controllers
 {
+    [Authorize]
     public class FavouriteBarsController : Controller
     {
         private readonly KyivBarGuideContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public FavouriteBarsController(KyivBarGuideContext context)
+        public FavouriteBarsController(KyivBarGuideContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: FavouriteBars
         public async Task<IActionResult> Index()
         {
-            var kyivBarGuideContext = _context.FavouriteBars.Include(f => f.Added).Include(f => f.AddedBy);
-            return View(await kyivBarGuideContext.ToListAsync());
+            var currentUser = await _userManager.GetUserAsync(User);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == currentUser.Id);
+
+            if (client == null)
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
+
+            var favouriteBars = await _context.FavouriteBars
+                .Include(f => f.Added)
+                .Where(f => f.AddedById == client.Id)
+                .ToListAsync();
+
+            return View(favouriteBars);
         }
 
         // GET: FavouriteBars/Details/5
@@ -34,10 +51,18 @@ namespace KyivBarGuideInfrastructure.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == currentUser.Id);
+
+            if (client == null)
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
+
             var favouriteBar = await _context.FavouriteBars
                 .Include(f => f.Added)
-                .Include(f => f.AddedBy)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id && m.AddedById == client.Id);
+
             if (favouriteBar == null)
             {
                 return NotFound();
@@ -171,30 +196,41 @@ namespace KyivBarGuideInfrastructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToFavourites(int barId)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == currentUser.Id);
+
+            if (client == null)
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
+
             var favouriteBar = new FavouriteBar
             {
                 AddedId = barId,
-                // = clientId.Value                    WAITING TO BE ALTERED
+                AddedById = client.Id
             };
-
-            TempData["SuccessMessage"] = "Bar added to favourites!";
 
             _context.Add(favouriteBar);
             await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Bar added to favourites!";
             return RedirectToAction("Details", "Bars", new { id = barId });
-            //return Json(new { success = true });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
-        public async Task<IActionResult> RemoveExactlyFromFavourites(int barId)
+        public async Task<IActionResult> RemoveFromFavourites(int barId)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == currentUser.Id);
 
+            if (client == null)
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
 
-            // Знаходимо запис у таблиці FavouriteBars
             var favouriteBar = await _context.FavouriteBars
-                .FirstOrDefaultAsync(fb => fb.AddedId == barId);
+                .FirstOrDefaultAsync(fb => fb.AddedId == barId && fb.AddedById == client.Id);
 
             if (favouriteBar != null)
             {
@@ -203,31 +239,9 @@ namespace KyivBarGuideInfrastructure.Controllers
 
                 TempData["SuccessMessage"] = "Bar removed from favourites!";
             }
-            else
-            {
-                TempData["ErrorMessage"] = "Bar is not in favourites.";
-            }
-
-            return RedirectToAction("Index", "FavouriteBars");
-        }
-
-        public async Task<IActionResult> RemoveFromFavourites(int barId)
-        {
-
-
-            // Знаходимо запис у таблиці FavouriteBars
-            var favouriteBar = await _context.FavouriteBars
-                .FirstOrDefaultAsync(fb => fb.AddedId == barId);
-
-            if (favouriteBar != null)
-            {
-                _context.FavouriteBars.Remove(favouriteBar);
-                await _context.SaveChangesAsync();
-            }
 
             return RedirectToAction("Details", "Bars", new { id = barId });
         }
     }
 }
-
 

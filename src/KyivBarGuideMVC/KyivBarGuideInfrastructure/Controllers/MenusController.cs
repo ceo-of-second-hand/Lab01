@@ -14,9 +14,12 @@ using iText.Kernel.Pdf.Canvas.Draw;
 using iText.Kernel.Colors;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace KyivBarGuideInfrastructure.Controllers;
 
+[Authorize]
 public class MenusController : Controller
 {
     private readonly KyivBarGuideContext _context;
@@ -28,17 +31,45 @@ public class MenusController : Controller
     }
 
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        var bars = _context.Bars.ToList();
-        return View(bars);
+        // Get the current user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+        // Get the admin using the UserId
+        var admin = await _context.Admins
+            .Include(a => a.WorkIn)
+            .FirstOrDefaultAsync(a => a.UserId == userId);
+
+        if (admin?.WorkIn == null)
+        {
+            return NotFound("You are not associated with any bar.");
+        }
+
+        var cocktails = await _context.Cocktails
+            .Include(c => c.Proportions)
+            .ThenInclude(p => p.AmountOf)
+            .Where(c => c.SellsIn == admin.WorkIn.Id)
+            .ToListAsync();
+
+        ViewBag.BarName = admin.WorkIn.Name;
+        ViewBag.BarId = admin.WorkIn.Id;
+        return View(cocktails);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetCocktailsForBar(int barId)
     {
-        if (barId <= 0)
-            return BadRequest("Bar ID is invalid");
+        // Verify the admin has access to this bar
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var admin = await _context.Admins
+            .Include(a => a.WorkIn)
+            .FirstOrDefaultAsync(a => a.UserId == userId);
+
+        if (admin?.WorkIn == null || admin.WorkIn.Id != barId)
+        {
+            return BadRequest("Unauthorized access to this bar's menu");
+        }
 
         var cocktails = await _context.Cocktails
             .Include(c => c.Proportions)

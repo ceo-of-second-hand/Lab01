@@ -8,7 +8,8 @@ public partial class Reservation
 {
     public int Id { get; set; }
 
-    public int? ReservedById { get; set; }
+    [Required]
+    public int ReservedById { get; set; }
 
     public int ReservedInId { get; set; }
 

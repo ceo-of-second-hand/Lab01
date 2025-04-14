@@ -1,13 +1,15 @@
-﻿<style>
+﻿@model IEnumerable<KyivBarGuideDomain.Model.Cocktail>
+
+<style>
     /* Загальний контейнер кожного коктейлю */
     .cocktail-item {
-        position: relative; /* Для коректного накладання (z-index) */
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: space-between;
         border-bottom: 1px solid #ddd;
         padding: 10px 0;
-        min-height: 70px; /* Щоб блоки не стрибали по висоті */
+        min-height: 70px;
     }
     /* Ліва частина з назвою та описом */
     .cocktail-info {
@@ -35,7 +37,7 @@
     .cocktail-image {
         width: auto;
         height: 60px;
-        object-fit: contain; /* змінюємо на contain */
+        object-fit: contain;
         transition: all 0.3s ease;
         position: relative;
         z-index: 2;
@@ -48,21 +50,21 @@
     }
     
 </style>
+
 <div class="container mt-4">
-    <h2>Choose Bar</h2>
-    <select id="barPicker" class="form-select mb-4" style="width: 50%; min-width: 300px;">
-        <option value="">Select a bar</option>
-        @foreach (var bar in Model)
-        {
-            <option value="@bar.Id">@bar.Name</option>
-        }
-    </select>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Menu for @ViewBag.BarName</h2>
+        <a href="@Url.Action("GeneratePdfMenu", new { barId = ViewBag.BarId })" class="btn btn-info" target="_blank">
+            <i class="fas fa-file-pdf"></i> Generate PDF Menu
+        </a>
+    </div>
 
     <div class="row">
         <!-- Ліва колонка для форми -->
-        <div class="col-md-6" id="cocktailFormSection" style="display:none;">
+        <div class="col-md-6" id="cocktailFormSection">
             <h4>Add new cocktail</h4>
             <form id="addCocktailForm" enctype="multipart/form-data">
+                <input type="hidden" name="barId" value="@ViewBag.BarId" />
                 <div class="mb-3">
                     <label class="form-label">Cocktail Name</label>
                     <input type="text" class="form-control" name="name" required />
@@ -112,23 +114,9 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
     <script>
-        let selectedBarId = null;
-
-        // Зміна бару в списку
-        $('#barPicker').on('change', function () {
-            selectedBarId = $(this).val();
-            if (selectedBarId) {
-                loadMenu(selectedBarId);
-                $('#cocktailFormSection').show();
-            } else {
-                $('#cocktailFormSection').hide();
-                $('#menuSection').html('');
-            }
-        });
-
-        // Завантажити меню для вибраного бару
-        function loadMenu(barId) {
-            $.get(`/Menus/GetCocktailsForBar?barId=${barId}`, function (data) {
+        // Завантажити меню для бару адміна
+        function loadMenu() {
+            $.get(`/Menus/GetCocktailsForBar?barId=@ViewBag.BarId`, function (data) {
                 let html = '';
                 data.forEach(c => {
                     html += `
@@ -148,11 +136,16 @@
             });
         }
 
+        // Завантажити меню при завантаженні сторінки
+        $(document).ready(function() {
+            loadMenu();
+        });
+
         // Видалення коктейлю
         $(document).on('click', '.delete-btn', function () {
             const cocktailId = $(this).data('id');
             $.post('/Menus/DeleteCocktail', { cocktailId }, function () {
-                loadMenu(selectedBarId);
+                loadMenu();
             });
         });
 
@@ -189,7 +182,6 @@
         $('#addCocktailForm').on('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(this);
-            formData.append('barId', selectedBarId);
 
             $('.ingredient-row').each(function (index) {
                 const ingredientName = $(this).find('.ingredient-name').val();
@@ -207,7 +199,7 @@
                 processData: false,
                 contentType: false,
                 success: function () {
-                    loadMenu(selectedBarId);
+                    loadMenu();
                     $('#addCocktailForm')[0].reset();
                     $('#ingredientsSection').html('');
                     // Відновлення базових трьох полів для інгредієнтів
